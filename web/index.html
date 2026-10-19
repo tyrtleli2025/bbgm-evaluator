@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#122521">
+  <title>Courtside — BBGM Solver</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Courtside home">
+        <svg viewBox="0 0 36 36" width="36" height="36" aria-hidden="true"><circle cx="18" cy="18" r="15"/><path d="M3 18h30M18 3v30M7 7c14 6 14 16 0 22M29 7c-14 6-14 16 0 22"/></svg>
+        <span>courtside<span class="brand-caption">BBGM SOLVER</span></span>
+      </a>
+      <div class="sidebar-section">
+        <span class="eyebrow">YOUR WORKSPACE</span>
+        <div class="league-label" id="league-label">No league imported</div>
+        <div class="league-detail" id="league-detail">Start with a BBGM league export.</div>
+        <button class="button import-button" id="import-button" type="button"><span aria-hidden="true">＋</span> Import league</button>
+        <input type="file" id="league-file" accept=".json,.gz,application/json,application/gzip" hidden>
+        <label class="field-label sidebar-label" for="team-select">Your team</label>
+        <select id="team-select" disabled><option>Import a league first</option></select>
+      </div>
+      <nav class="main-nav" aria-label="Workspace views">
+        <button class="nav-item active" id="overview-tab" data-tab="overview" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11h5v6H3zm9-8h5v14h-5zM3 3h5v4H3z"/></svg>Team overview</button>
+        <button class="nav-item" id="trade-tab" data-tab="trade"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h13m-4-3 4 3-4 3M17 15H4m4-3-4 3 4 3"/></svg>Trade builder<span class="nav-tag">LIVE</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="local-badge"><span class="status-dot"></span> Local workspace</div>
+        <p>Your export stays on this computer. No changes are made to your game.</p>
+        <div class="sidebar-footer">FIND YOUR NEXT ADVANTAGE.</div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="view-label">Team overview</strong></div>
+        <button class="button button-quiet" id="download-button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4"/></svg>Export report</button>
+      </header>
+      <div class="page-content">
+        <div id="error-banner" class="notice notice-error" role="alert" hidden></div>
+        <section class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow" id="season-label">A CLEARER VIEW OF YOUR ROSTER</span>
+            <h1 id="team-title">Build a better contender.</h1>
+            <p id="team-subtitle">Understand your team. Explore the market. Find the moves that make a difference.</p>
+            <div class="hero-meta" id="team-meta" hidden></div>
+          </div>
+          <div class="court-art" aria-hidden="true"><svg viewBox="0 0 220 130"><rect x="4" y="4" width="212" height="122" rx="5"/><path d="M110 4v122M4 35h48v60H4m212-60h-48v60h48M4 12c103 0 103 106 0 106m212-106c-103 0-103 106 0 106"/><circle cx="110" cy="65" r="21"/><circle cx="52" cy="65" r="20"/><circle cx="168" cy="65" r="20"/><circle class="court-player" cx="130" cy="34" r="5"/><circle class="court-player" cx="151" cy="86" r="5"/><circle class="court-player" cx="187" cy="46" r="5"/><circle class="court-player" cx="103" cy="90" r="5"/><circle class="court-player" cx="168" cy="66" r="5"/></svg></div>
+        </section>
+
+        <section class="import-empty" id="import-empty">
+          <div class="upload-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 23V5m-7 7 7-7 7 7M5 20v7h22v-7"/></svg></div>
+          <h2>Your league. Your next move.</h2>
+          <p>Drop a Basketball GM league export here to get started.<br>JSON, compressed JSON, and collected proposal bundles are supported.</p>
+          <button class="button button-primary" id="empty-import-button">Choose league file <span aria-hidden="true">↗</span></button>
+          <span class="empty-note">Import once, explore as many trades as you like.</span>
+        </section>
+
+        <div id="workspace" hidden>
+          <section class="analysis-toolbar" aria-label="Evaluation settings">
+            <div class="toolbar-intro"><span class="section-kicker">EVALUATION MODEL</span><strong>Pinned BBGM game engine</strong></div>
+            <label>Game format<select id="phase-select"><option value="regular">Regular season</option><option value="playoffs">Playoffs</option></select></label>
+            <label>Player health<select id="health-select"><option value="current">Current injuries</option><option value="healthy">Fully healthy</option></select></label>
+            <label>Games / opponent<select id="games-select"><option value="4">4 · quick look</option><option value="12">12 · balanced</option><option value="20" selected>20 · standard</option><option value="40">40 · more precision</option></select></label>
+            <button class="button button-primary" id="evaluate-button">Evaluate team <span aria-hidden="true">↗</span></button>
+          </section>
+
+          <div class="job-panel" id="job-panel" role="status" aria-live="polite" hidden>
+            <div class="job-copy"><span class="spinner" aria-hidden="true"></span><div><strong id="job-title">Analyzing your team</strong><p id="job-message">Preparing the engine…</p></div></div>
+            <button class="button button-quiet" id="cancel-button">Cancel</button>
+            <div class="progress-track"><div id="job-progress"></div></div>
+          </div>
+
+          <section id="overview-view" aria-labelledby="overview-heading">
+            <div class="section-heading"><div><span class="section-kicker">THE BIG PICTURE</span><h2 id="overview-heading">How your team stacks up</h2></div><span class="muted compact" id="evaluation-meta">Run an evaluation to see your results</span></div>
+            <div class="metric-grid" id="metric-grid">
+              <article class="metric-card primary-metric"><span class="metric-label">TEAM STRENGTH</span><strong id="strength-value">—</strong><span class="metric-unit">net points / 100 possessions</span><div class="metric-footer" id="strength-detail">Above zero means better than the field</div></article>
+              <article class="metric-card"><span class="metric-label">OFFENSIVE RATING</span><strong id="offense-value">—</strong><span class="metric-unit">points scored / 100 possessions</span><div class="metric-footer">Higher is better <span aria-hidden="true">↗</span></div></article>
+              <article class="metric-card"><span class="metric-label">DEFENSIVE RATING</span><strong id="defense-value">—</strong><span class="metric-unit">points allowed / 100 possessions</span><div class="metric-footer">Lower is better <span aria-hidden="true">↘</span></div></article>
+              <article class="metric-card"><span class="metric-label">SIMULATED WIN RATE</span><strong id="win-value">—</strong><span class="metric-unit">against an evenly weighted league</span><div class="metric-footer">Game wins, not championship odds</div></article>
+            </div>
+            <div class="analysis-grid">
+              <article class="panel synergy-panel"><div class="panel-header"><div><span class="section-kicker">THE FIT FACTOR</span><h2>Lineup synergy</h2></div><span class="pill">0–100 scale</span></div><div id="synergy-bars" class="synergy-bars"></div><p class="panel-note">Time-weighted lineup synergy from the engine, scaled to its mathematical ceiling. The marker shows your opponents’ average. These scores are not percentiles.</p><details class="skill-details"><summary>What contributes to synergy?</summary><p>Offense combines shooting, ball handling, passing, post play, and athleticism. Defense combines interior defense, perimeter defense, and athleticism. Rebounding rewards having multiple capable rebounders on the floor.</p><div id="skill-counts"></div></details></article>
+              <article class="panel insight-panel"><span class="section-kicker">FROM INSIGHT TO ACTION</span><h2 id="insight-title">Find the missing piece.</h2><p id="insight-copy">Evaluate your roster to see how its on-court combinations compare with the rest of the league.</p><div class="insight-divider"></div><span class="section-kicker">NEXT UP</span><h3>Build a stronger roster</h3><p>Choose a trading partner and assemble a package. See its effect on your team as you adjust the deal.</p><button class="button button-secondary" id="open-trade-button">Open trade builder <span aria-hidden="true">→</span></button></article>
+            </div>
+            <article class="panel roster-panel"><div class="panel-header"><div><span class="section-kicker">YOUR PERSONNEL</span><h2>Current roster <span class="count-badge" id="roster-count">0</span></h2></div><span class="muted compact" id="roster-order">Sorted by overall rating</span></div><div class="table-scroll"><table><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>OVR</th><th>POT</th><th>Salary</th><th>Sim. MIN</th><th>Sim. PTS</th></tr></thead><tbody id="roster-body"></tbody></table></div></article>
+          </section>
+
+          <section id="trade-view" aria-labelledby="trade-heading" hidden>
+            <div class="section-heading"><div><span class="section-kicker">BUILD A DEAL, SEE THE DIFFERENCE</span><h2 id="trade-heading">Trade builder</h2></div><span class="pill">Live team impact</span></div>
+            <article class="panel trade-workspace">
+              <div class="trade-toolbar"><div><h3>Put your next move together.</h3><p>Select any combination of players and available picks from both teams.</p></div><label>Trading partner<select id="opponent-select" aria-label="Trading partner"></select></label></div>
+              <div class="trade-summary-grid" id="trade-summary"></div>
+              <div class="trade-actions"><div class="trade-primary-actions"><button class="button button-primary" id="make-work-button" disabled>What would make this trade work?</button><button class="button button-quiet" id="clear-trade-button" disabled>Clear</button></div><span class="trade-sandbox-note">A local preview. No trades are made in your game.</span></div>
+              <div id="make-work-message" class="deal-message" role="status" hidden></div>
+              <div class="assessment-panel" id="trade-assessment" aria-live="polite"><span class="muted">Select players to check the deal.</span></div>
+            </article>
+
+            <article class="panel impact-panel" aria-labelledby="impact-heading">
+              <div class="panel-header"><div><span class="section-kicker">YOUR TEAM, BEFORE & AFTER</span><h2 id="impact-heading">Trade impact</h2></div><div class="impact-controls"><span class="impact-status" id="impact-status" role="status" aria-live="polite">Select a package to begin</span><button class="button button-secondary" id="refine-trade-button" disabled>Refine estimate</button><button class="button button-quiet" id="cancel-trade-button" hidden>Cancel</button></div></div>
+              <div id="trade-impact"></div>
+              <div class="impact-progress" id="impact-progress" hidden><div></div></div>
+              <p class="impact-caption" id="impact-caption">Each change runs a quick preview with 4 games per opponent. Refine uses the simulation budget selected above.</p>
+              <details class="impact-rotation" id="impact-rotation" hidden><summary>How the rotation changes</summary><div class="table-scroll"><table><thead><tr><th>Player</th><th>Status</th><th>MIN before</th><th>MIN after</th><th>Δ MIN</th></tr></thead><tbody id="rotation-body"></tbody></table></div></details>
+            </article>
+
+            <div class="trade-rosters" id="trade-rosters"></div>
+            <p class="trade-table-note"><strong>Include</strong> adds an asset to the deal. <strong>Protect</strong> keeps a player out of suggested counteroffers. You can continue editing while the impact is calculated.</p>
+
+            <details class="panel trade-assumptions"><summary>Trade context & explicit assumptions</summary><p class="context-note" id="trade-context-note"></p><div class="search-fields"><label>Trading phase<select id="trade-phase-select"><option value="">Use export metadata</option><option value="0">Assume preseason</option><option value="1">Assume regular season</option><option value="2">Assume after deadline</option><option value="3">Assume playoffs</option><option value="4">Assume draft lottery</option><option value="5">Assume draft</option><option value="6">Assume after draft</option><option value="7">Assume re-signing</option><option value="8">Assume free agency</option></select></label><label>Game difficulty<input id="difficulty-input" type="number" min="-10" max="10" step="any" placeholder="Use export metadata"></label><label>Partner’s strategy<select id="strategy-select"><option value="">Use export metadata</option><option value="contending">Assume contending</option><option value="rebuilding">Assume rebuilding</option></select></label><label>Simulation seed<input id="seed-input" type="number" min="0" max="2147483647" value="12345"></label></div><p class="assumption-caption">Overrides are assumptions, not recovered export data. AI results depend on the selected partner’s strategy, league difficulty, transaction phase, and the game version.</p></details>
+            <details class="panel collector-help"><summary>Import full trade context from your game</summary><p>Some exports omit the phase, team strategies, or difficulty. Open <a href="/collect-snapshot.js" target="_blank" rel="noopener">the snapshot collector</a>, copy its contents, and run it in the developer console of your open Basketball GM league. Import the downloaded JSON here.</p><p>The collector reads the current league without changing players, trades, or proposal settings. Draft-pick value and future seasons are not included in the current team impact score.</p></details>
+          </section>
+          <details class="warnings-panel" id="warnings-panel" hidden><summary id="warnings-summary">Model notes</summary><ul id="warnings-list"></ul></details>
+          <footer class="page-footer"><span>BBGM SOLVER <span class="footer-dot">·</span> CURRENT TEAM ANALYSIS</span><span>Frozen rosters. Reproducible simulations. Better-informed decisions.</span></footer>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
