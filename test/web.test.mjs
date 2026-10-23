@@ -40,6 +40,49 @@ test('web job budgets and modes are bounded before launching workers', () => {
   }
 });
 
+test('playoff requests validate matchup, injury ownership, and simulation budgets', () => {
+  const {league}=importSnapshot(bytes);
+  const valid={teamId:0,opponentId:1,series:200};
+  assert.equal(validateJobOptions(league,'series',valid).phase,'playoffs');
+  for (const change of [{opponentId:0},{opponentId:999},{homeCourt:2},{series:0},{series:2001},{currentScore:[4,4]},
+    {injuries:[{pid:league.teams.get(2)[0].pid,gamesRemaining:30}]},
+    {injuries:league.teams.get(0).map(p=>({pid:p.pid,gamesRemaining:30}))}]) {
+    assert.throws(()=>validateJobOptions(league,'series',{...valid,...change}));
+  }
+});
+
+test('HTTP playoff scenarios support injury changes, cache isolation, cancellation, and original snapshot reuse',async t=>{
+  const base=await start(t);
+  const session=await (await fetch(base+'/api/import',{method:'POST',body:JSON.stringify(tiny)})).json();
+  const spec={sessionId:session.sessionId,type:'series',options:{teamId:0,opponentId:1,series:5,health:'healthy'}};
+  const first=await json(base,'/api/jobs',spec);
+  assert.equal(first.status,202);
+  const baseline=await waitFor(base,first.data.jobId);
+  assert.equal(baseline.status,'complete'); assert.equal(baseline.result.bestOf,7);
+  assert.equal(baseline.result.teams.reduce((sum,t)=>sum+t.seriesWinProbability,0),1);
+  const pid=tiny.players.find(p=>p.tid===1).pid;
+  const next=await json(base,'/api/jobs',{...spec,options:{...spec.options,injuries:[{pid,gamesRemaining:30}]}});
+  const injured=await waitFor(base,next.data.jobId);
+  assert.equal(injured.status,'complete');
+  assert.equal(injured.result.teams[1].availability.find(p=>p.pid===pid).status,'out');
+  const again=await json(base,'/api/jobs',spec);
+  const restored=await waitFor(base,again.data.jobId);
+  assert.equal(restored.result.resultReused,true);
+  assert.deepEqual(restored.result.teams,baseline.result.teams);
+  const scored=await json(base,'/api/jobs',{...spec,options:{...spec.options,currentScore:[3,3]}});
+  const gameSeven=await waitFor(base,scored.data.jobId);
+  assert.equal(gameSeven.result.simulatedGames,5);
+  assert.equal(gameSeven.result.sampleSeries[0].game,7);
+  assert.deepEqual(gameSeven.result.currentScore,[3,3]);
+  const long=await json(base,'/api/jobs',{...spec,options:{...spec.options,series:2000}});
+  assert.equal((await json(base,'/api/jobs',{...spec,replace:true,options:{...spec.options,opponentId:0}})).status,400);
+  const replacement=await json(base,'/api/jobs',{...spec,replace:true});
+  assert.equal(replacement.status,202);
+  assert.equal((await waitFor(base,long.data.jobId)).status,'cancelled');
+  assert.equal((await waitFor(base,replacement.data.jobId)).status,'complete');
+  assert.equal((await fetch(base+'/playoff-series.js')).status,200);
+});
+
 async function start(t,options) {
   const server=createApp(options);
   server.listen(0,'127.0.0.1');

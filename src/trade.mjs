@@ -1,3 +1,4 @@
+import { teamName } from './team-names.mjs';
 import { createHash } from 'node:crypto';
 import { evaluate, estimatedPossessions, summarizeStrata } from './evaluator.mjs';
 
@@ -44,7 +45,7 @@ export function prepareTrade(league, scenario, teamId) {
     const roster = candidate.teams.get(tid);
     if (roster.length < league.settings.numPlayersOnCourt) throw new Error(`Trade leaves team ${tid} with too few players to simulate`);
     if (roster.length < league.settings.minRosterSize || roster.length > league.settings.maxRosterSize) {
-      warnings.push(`Team ${tid}: post-trade roster size ${roster.length} is outside exported roster limits.`);
+      warnings.push(`${teamName(league,tid)}: post-trade roster size ${roster.length} is outside exported roster limits.`);
     }
     // Same explicit rotation policy on BOTH sides of the comparison. This is a
     // simple value-based policy, not an optimal lineup search or BBGM auto-sort.

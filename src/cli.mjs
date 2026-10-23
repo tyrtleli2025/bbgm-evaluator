@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 
 import { dirname, resolve } from 'node:path';
 import { readLeague, normalizeLeague } from './importer.mjs';
 import { createHash } from 'node:crypto';
+import { teamName } from './team-names.mjs';
 
 try {
   const {values} = parseArgs({options:{
@@ -52,6 +53,7 @@ try {
     const league = proposalBundle
       ? normalizeLeague(proposalBundle.league,createHash('sha256').update(JSON.stringify(proposalBundle.league)).digest('hex'))
       : readLeague(values.league);
+    const nameOf = tid => teamName(league,Number(tid));
     if (values.trade && (values.inspect || values.players !== undefined || values['opponent-id'] !== undefined || values.series !== undefined || values['home-court'] !== undefined)) throw new Error('--trade cannot be combined with inspect, players, or series options');
     if (values.trade && values['team-id'] === undefined) throw new Error('--trade requires --team-id');
     if (values.out && ((values.league && resolve(values.out) === resolve(values.league)) || (values.trade && resolve(values.out) === resolve(values.trade)))) throw new Error('Output must not overwrite league or trade input');
@@ -63,14 +65,14 @@ try {
       const rows = found.map(p => ({pid:p.pid,tid:p.tid,name:`${p.firstName} ${p.lastName}`,position:p.rating.pos,ovr:p.rating.ovr}));
       if (values.json) console.log(JSON.stringify(rows,null,2));
       else {
-        for (const p of rows) console.log(`PID ${p.pid} | team ${p.tid} | ${p.name} | ${p.position} | OVR ${p.ovr}`);
+        for (const p of rows) console.log(`PID ${p.pid} | ${nameOf(p.tid)} | ${p.name} | ${p.position} | OVR ${p.ovr}`);
         if (!rows.length) console.log('No rostered players matched.');
       }
     } else if(values.inspect) {
       console.log(`${league.totalPlayers} player records; ${league.teams.size} teams; season ${league.settings.season}`);
       for(const [tid,ps] of league.teams) {
         if (values['team-id'] !== undefined && tid !== Number(values['team-id'])) continue;
-        console.log(`Team ${String(tid).padStart(2)} (${ps.length}): ${ps.map(p=>`${p.firstName} ${p.lastName} [PID ${p.pid}]`).join(', ')}`);
+        console.log(`${nameOf(tid)} [TID ${tid}] (${ps.length}): ${ps.map(p=>`${p.firstName} ${p.lastName} [PID ${p.pid}]`).join(', ')}`);
       }
     } else {
       if(!existsSync(new URL('../.engine/worker/core/GameSim.basketball/index.js',import.meta.url))) await import('../scripts/build-engine.mjs');
@@ -103,14 +105,14 @@ try {
       }
       if(values.json) console.log(JSON.stringify(result,null,2));
       else if (proposalBundle) {
-        console.log(`Proposal ranking for team ${result.teamId}: ${result.evaluated} evaluated, ${result.skipped.length} skipped, ${result.unevaluatedValid} beyond limit`);
+        console.log(`Proposal ranking for ${nameOf(result.teamId)}: ${result.evaluated} evaluated, ${result.skipped.length} skipped, ${result.unevaluatedValid} beyond limit`);
         console.log(`Shared baseline: ${result.baseline.strength.toFixed(2)} estimated net points/100; ${result.phase}; ${result.simulatedGames} games`);
         for (const [i,r] of result.ranked.entries()) {
           const outgoing=r.transfers.filter(p=>p.fromTid===result.teamId).map(p=>p.name).join(', ') || 'no players';
           const incoming=r.transfers.filter(p=>p.toTid===result.teamId).map(p=>p.name).join(', ') || 'no players';
           console.log(`\n${i+1}. ${r.id}: ${r.delta.net.estimate.toFixed(2)} points/100 (95% CI ${r.delta.net.confidence95.map(x=>x.toFixed(2)).join(' to ')}); ${r.verdict}`);
           console.log(`  Send: ${outgoing}; receive: ${incoming}`);
-          for (const side of r.picks) if(side.send.length) console.log(`  Team ${side.tid} sends picks: ${side.send.map(p=>p.desc ?? `DPID ${p.dpid}`).join(', ')} (future value unscored)`);
+          for (const side of r.picks) if(side.send.length) console.log(`  ${nameOf(side.tid)} sends picks: ${side.send.map(p=>p.desc ?? `DPID ${p.dpid}`).join(', ')} (future value unscored)`);
           console.log(`  Synergy change O/D/R: ${['off','def','reb'].map(k=>r.synergyChange[k].toFixed(1)).join(' / ')}`);
         }
         for (const skip of result.skipped) console.log(`Skipped ${skip.id ?? skip.index}: ${skip.reason}`);
@@ -119,11 +121,11 @@ try {
       }
       else if (values.trade) {
         console.log(`Trade evaluation — ${result.phase}, ${result.health} health; ${result.simulatedGames} simulated games`);
-        for (const p of result.transfers) console.log(`${p.name} [PID ${p.pid}]: team ${p.fromTid} -> team ${p.toTid}`);
+        for (const p of result.transfers) console.log(`${p.name} [PID ${p.pid}]: ${nameOf(p.fromTid)} -> ${nameOf(p.toTid)}`);
         console.log(`Rotation policy: ${result.rotationPolicy}`);
         for (const c of result.comparisons) {
           const d = c.delta.net;
-          console.log(`\nTeam ${c.tid}${c.tid === result.teamId ? ' (selected)' : ' (trade partner)'}: ${c.verdict}`);
+          console.log(`\n${nameOf(c.tid)}${c.tid === result.teamId ? ' (selected)' : ' (trade partner)'}: ${c.verdict}`);
           console.log(`Strength: ${c.before.strength.toFixed(2)} -> ${c.after.strength.toFixed(2)}; change ${d.estimate.toFixed(2)} points/100 possessions (95% paired CI ${d.confidence95.map(x=>x.toFixed(2)).join(' to ')})`);
           console.log(`Offense: ${c.before.offensiveRating.toFixed(2)} -> ${c.after.offensiveRating.toFixed(2)}; defense: ${c.before.defensiveRating.toFixed(2)} -> ${c.after.defensiveRating.toFixed(2)} (lower defense is better)`);
           console.log(`Game win rate: ${(100*c.before.winRate).toFixed(1)}% -> ${(100*c.after.winRate).toFixed(1)}%`);
@@ -135,12 +137,12 @@ try {
         if(values.out) console.log(`Full report: ${values.out}`);
       }
       else if (seriesMode) {
-        console.log(`Best-of-seven: team ${options.teamId} vs team ${values['opponent-id']} — ${result.series} series, ${result.simulatedGames} games`);
+        console.log(`Best-of-seven: ${nameOf(options.teamId)} vs ${nameOf(values['opponent-id'])} — ${result.series} series, ${result.simulatedGames} games`);
         console.log(`League: ${values.league}`);
-        console.log(result.neutralSite ? 'Neutral playoff venues (league setting).' : `Home-court advantage: team ${result.homeCourt}; 2-2-1-1-1 schedule.`);
-        for (const t of result.teams) console.log(`Team ${t.tid}: ${(100*t.seriesWinProbability).toFixed(1)}% chance to win the series (95% sampling interval: ${t.seriesWinConfidence95.map(x => (100*x).toFixed(1)+'%').join(' to ')})`);
+        console.log(result.neutralSite ? 'Neutral playoff venues (league setting).' : `Home-court advantage: ${nameOf(result.homeCourt)}; 2-2-1-1-1 schedule.`);
+        for (const t of result.teams) console.log(`${nameOf(t.tid)}: ${(100*t.seriesWinProbability).toFixed(1)}% chance to win the series (95% sampling interval: ${t.seriesWinConfidence95.map(x => (100*x).toFixed(1)+'%').join(' to ')})`);
         console.log(`Average series length: ${result.meanSeriesLength.toFixed(2)} games`);
-        for (const o of result.outcomes) console.log(`Team ${o.winner} wins 4-${o.loserWins}: ${(100*o.probability).toFixed(1)}%`);
+        for (const o of result.outcomes) console.log(`${nameOf(o.winner)} wins 4-${o.loserWins}: ${(100*o.probability).toFixed(1)}%`);
         console.log('Frozen rosters and availability; no new injuries or injury recovery between games. Intervals cover simulation sampling only.');
         for (const warning of result.warnings) console.log(`Note: ${warning}`);
         if(values.out) console.log(`Full report: ${values.out}`);
@@ -148,8 +150,8 @@ try {
       else {
         console.log(`Team strength — ${result.phase}, ${result.health} health; ${result.simulatedGames} games`);
         console.log('Score = estimated net points / 100 possessions. Higher is better. CI = approximate 95% sampling interval.');
-        console.log(' TID    SCORE          95% CI     OFF     DEF    WIN%   SYN-O SYN-D SYN-R   Players with most minutes');
-        for(const t of result.teams) console.log(`${String(t.tid).padStart(4)} ${t.strength.toFixed(2).padStart(8)} [${t.strengthConfidence95.map(x=>x.toFixed(2).padStart(6)).join(',')}] ${t.offensiveRating.toFixed(1).padStart(7)} ${t.defensiveRating.toFixed(1).padStart(7)} ${(100*t.winRate).toFixed(1).padStart(7)}   ${['off','def','reb'].map(k=>t.synergy.scale100[k].toFixed(1).padStart(5)).join(' ')}   ${t.leaders.join(', ')}`);
+        console.log(' TEAM                            SCORE          95% CI     OFF     DEF    WIN%   SYN-O SYN-D SYN-R   Players with most minutes');
+        for(const t of result.teams) console.log(`${nameOf(t.tid).padEnd(29)} ${t.strength.toFixed(2).padStart(8)} [${t.strengthConfidence95.map(x=>x.toFixed(2).padStart(6)).join(',')}] ${t.offensiveRating.toFixed(1).padStart(7)} ${t.defensiveRating.toFixed(1).padStart(7)} ${(100*t.winRate).toFixed(1).padStart(7)}   ${['off','def','reb'].map(k=>t.synergy.scale100[k].toFixed(1).padStart(5)).join(' ')}   ${t.leaders.join(', ')}`);
         console.log('SYN-O/D/R: time-weighted offensive/defensive/rebounding synergy, scaled to each formula’s upper bound (0–100; not league percentiles).');
         if(result.teams.length===1) {
           const s=result.teams[0].synergy;

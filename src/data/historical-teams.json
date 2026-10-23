@@ -1,0 +1,1005 @@
+{
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/zengm-games/zengm/master/data/real-player-data.basketball.json",
+      "sha256": "6cc90b47e5d5e544ab34ad52e70972e6ea4b8fbd33a562dd8e190d139c366316",
+      "purpose": "Franchise expansion, contraction, identity changes, and ordering. IDs are compacted at league creation by formatScheduledEvents.ts."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/alexnoob/BasketBall-GM-Rosters/master/team%20data.json",
+      "sha256": "e8c0dc5f80fdb8b568f456e5bbfdab212eb1d85c0474b340d8669b9cc087973e",
+      "purpose": "Actual historical NBA team names keyed by Sports Reference abbreviation."
+    }
+  ],
+  "retrieved": "2026-10-23",
+  "throughSeason": 2026,
+  "names": {
+    "AND": {
+      "region": "Anderson",
+      "name": "Packers"
+    },
+    "ATL": {
+      "region": "Atlanta",
+      "name": "Hawks"
+    },
+    "BAL": {
+      "region": "Baltimore",
+      "name": "Bullets"
+    },
+    "BLB": {
+      "region": "Baltimore",
+      "name": "Bullets"
+    },
+    "BOS": {
+      "region": "Boston",
+      "name": "Celtics"
+    },
+    "BRK": {
+      "region": "Brooklyn",
+      "name": "Nets"
+    },
+    "BUF": {
+      "region": "Buffalo",
+      "name": "Braves"
+    },
+    "CAP": {
+      "region": "Capital",
+      "name": "Bullets"
+    },
+    "CHA": {
+      "region": "Charlotte",
+      "name": "Bobcats"
+    },
+    "CHH": {
+      "region": "Charlotte",
+      "name": "Hornets"
+    },
+    "CHI": {
+      "region": "Chicago",
+      "name": "Bulls"
+    },
+    "CHO": {
+      "region": "Charlotte",
+      "name": "Hornets"
+    },
+    "CHP": {
+      "region": "Chicago",
+      "name": "Packers"
+    },
+    "CHS": {
+      "region": "Chicago",
+      "name": "Stags"
+    },
+    "CHZ": {
+      "region": "Chicago",
+      "name": "Zephyrs"
+    },
+    "CIN": {
+      "region": "Cincinnati",
+      "name": "Royals"
+    },
+    "CLE": {
+      "region": "Cleveland",
+      "name": "Cavaliers"
+    },
+    "CLR": {
+      "region": "Cleveland",
+      "name": "Rebels"
+    },
+    "DAL": {
+      "region": "Dallas",
+      "name": "Mavericks"
+    },
+    "DEN": {
+      "region": "Denver",
+      "name": "Nuggets"
+    },
+    "DET": {
+      "region": "Detroit",
+      "name": "Pistons"
+    },
+    "DNN": {
+      "region": "Denver",
+      "name": "Nuggets"
+    },
+    "DTF": {
+      "region": "Detroit",
+      "name": "Falcons"
+    },
+    "FTW": {
+      "region": "Fort Wayne",
+      "name": "Pistons"
+    },
+    "GSW": {
+      "region": "Golden State",
+      "name": "Warriors"
+    },
+    "HOU": {
+      "region": "Houston",
+      "name": "Rockets"
+    },
+    "IND": {
+      "region": "Indiana",
+      "name": "Pacers"
+    },
+    "INJ": {
+      "region": "Indianapolis",
+      "name": "Jets"
+    },
+    "INO": {
+      "region": "Indianapolis",
+      "name": "Olympians"
+    },
+    "KCK": {
+      "region": "Kansas City",
+      "name": "Kings"
+    },
+    "KCO": {
+      "region": "Kansas City-Omaha",
+      "name": "Kings"
+    },
+    "LAC": {
+      "region": "Los Angeles",
+      "name": "Clippers"
+    },
+    "LAL": {
+      "region": "Los Angeles",
+      "name": "Lakers"
+    },
+    "MEM": {
+      "region": "Memphis",
+      "name": "Grizzlies"
+    },
+    "MIA": {
+      "region": "Miami",
+      "name": "Heat"
+    },
+    "MIL": {
+      "region": "Milwaukee",
+      "name": "Bucks"
+    },
+    "MIN": {
+      "region": "Minnesota",
+      "name": "Timberwolves"
+    },
+    "MLH": {
+      "region": "Milwaukee",
+      "name": "Hawks"
+    },
+    "MNL": {
+      "region": "Minneapolis",
+      "name": "Lakers"
+    },
+    "NJN": {
+      "region": "New Jersey",
+      "name": "Nets"
+    },
+    "NOH": {
+      "region": "New Orleans",
+      "name": "Hornets"
+    },
+    "NOJ": {
+      "region": "New Orleans",
+      "name": "Jazz"
+    },
+    "NOP": {
+      "region": "New Orleans",
+      "name": "Pelicans"
+    },
+    "NYK": {
+      "region": "New York",
+      "name": "Knicks"
+    },
+    "NYN": {
+      "region": "New York",
+      "name": "Nets"
+    },
+    "OKC": {
+      "region": "Oklahoma City",
+      "name": "Thunder"
+    },
+    "ORL": {
+      "region": "Orlando",
+      "name": "Magic"
+    },
+    "PHI": {
+      "region": "Philadelphia",
+      "name": "76ers"
+    },
+    "PHO": {
+      "region": "Phoenix",
+      "name": "Suns"
+    },
+    "PHW": {
+      "region": "Philadelphia",
+      "name": "Warriors"
+    },
+    "PIT": {
+      "region": "Pittsburgh",
+      "name": "Ironmen"
+    },
+    "POR": {
+      "region": "Portland",
+      "name": "Trail Blazers"
+    },
+    "PRO": {
+      "region": "Providence",
+      "name": "Steamrollers"
+    },
+    "ROC": {
+      "region": "Rochester",
+      "name": "Royals"
+    },
+    "SAC": {
+      "region": "Sacramento",
+      "name": "Kings"
+    },
+    "SAS": {
+      "region": "San Antonio",
+      "name": "Spurs"
+    },
+    "SDC": {
+      "region": "San Diego",
+      "name": "Clippers"
+    },
+    "SDR": {
+      "region": "San Diego",
+      "name": "Rockets"
+    },
+    "SEA": {
+      "region": "Seattle",
+      "name": "SuperSonics"
+    },
+    "SFW": {
+      "region": "San Francisco",
+      "name": "Warriors"
+    },
+    "SHE": {
+      "region": "Sheboygan",
+      "name": "Red Skins"
+    },
+    "STB": {
+      "region": "St. Louis",
+      "name": "Bombers"
+    },
+    "STL": {
+      "region": "St. Louis",
+      "name": "Hawks"
+    },
+    "SYR": {
+      "region": "Syracuse",
+      "name": "Nationals"
+    },
+    "TOR": {
+      "region": "Toronto",
+      "name": "Raptors"
+    },
+    "TRH": {
+      "region": "Toronto",
+      "name": "Huskies"
+    },
+    "TRI": {
+      "region": "Tri-Cities",
+      "name": "Black Hawks"
+    },
+    "UTA": {
+      "region": "Utah",
+      "name": "Jazz"
+    },
+    "VAN": {
+      "region": "Vancouver",
+      "name": "Grizzlies"
+    },
+    "WAS": {
+      "region": "Washington",
+      "name": "Wizards"
+    },
+    "WAT": {
+      "region": "Waterloo",
+      "name": "Hawks"
+    },
+    "WSB": {
+      "region": "Washington",
+      "name": "Bullets"
+    },
+    "WSC": {
+      "region": "Washington",
+      "name": "Capitols"
+    }
+  },
+  "events": [
+    {
+      "season": 1946,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 0,
+            "srID": "PRO"
+          },
+          {
+            "tid": 1,
+            "srID": "BOS"
+          },
+          {
+            "tid": 2,
+            "srID": "NYK"
+          },
+          {
+            "tid": 3,
+            "srID": "PHW"
+          },
+          {
+            "tid": 4,
+            "srID": "WSC"
+          },
+          {
+            "tid": 5,
+            "srID": "TRH"
+          },
+          {
+            "tid": 6,
+            "srID": "CHS"
+          },
+          {
+            "tid": 7,
+            "srID": "STB"
+          },
+          {
+            "tid": 8,
+            "srID": "CLR"
+          },
+          {
+            "tid": 9,
+            "srID": "DTF"
+          },
+          {
+            "tid": 10,
+            "srID": "PIT"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1947,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 5
+      }
+    },
+    {
+      "season": 1947,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 8
+      }
+    },
+    {
+      "season": 1947,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 9
+      }
+    },
+    {
+      "season": 1947,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 10
+      }
+    },
+    {
+      "season": 1947,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 11,
+            "srID": "BLB"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1948,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 12,
+            "srID": "ROC"
+          },
+          {
+            "tid": 13,
+            "srID": "MNL"
+          },
+          {
+            "tid": 9,
+            "srID": "FTW"
+          },
+          {
+            "tid": 14,
+            "srID": "INJ"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1949,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 0
+      }
+    },
+    {
+      "season": 1949,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 15,
+            "srID": "SYR"
+          },
+          {
+            "tid": 16,
+            "srID": "TRI"
+          },
+          {
+            "tid": 17,
+            "srID": "AND"
+          },
+          {
+            "tid": 18,
+            "srID": "SHE"
+          },
+          {
+            "tid": 19,
+            "srID": "WAT"
+          },
+          {
+            "tid": 20,
+            "srID": "DNN"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 14,
+        "srID": "INO"
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 17
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 18
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 19
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 20
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 6
+      }
+    },
+    {
+      "season": 1950,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 7
+      }
+    },
+    {
+      "season": 1951,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 4
+      }
+    },
+    {
+      "season": 1952,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 16,
+        "srID": "MLH"
+      }
+    },
+    {
+      "season": 1953,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 14
+      }
+    },
+    {
+      "season": 1955,
+      "phase": 4,
+      "type": "contraction",
+      "info": {
+        "tid": 11
+      }
+    },
+    {
+      "season": 1956,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 16,
+        "srID": "STL"
+      }
+    },
+    {
+      "season": 1958,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 12,
+        "srID": "CIN"
+      }
+    },
+    {
+      "season": 1958,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 9,
+        "srID": "DET"
+      }
+    },
+    {
+      "season": 1961,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 13,
+        "srID": "LAL"
+      }
+    },
+    {
+      "season": 1961,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 11,
+            "srID": "CHP"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1963,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 11,
+        "srID": "CHZ"
+      }
+    },
+    {
+      "season": 1963,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 3,
+        "srID": "SFW"
+      }
+    },
+    {
+      "season": 1964,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 15,
+        "srID": "PHI"
+      }
+    },
+    {
+      "season": 1964,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 11,
+        "srID": "BAL"
+      }
+    },
+    {
+      "season": 1966,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 6,
+            "srID": "CHI"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1967,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 21,
+            "srID": "SEA"
+          },
+          {
+            "tid": 22,
+            "srID": "SDR"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1968,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 18,
+            "srID": "MIL"
+          },
+          {
+            "tid": 23,
+            "srID": "PHO"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1969,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 16,
+        "srID": "ATL"
+      }
+    },
+    {
+      "season": 1970,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 24,
+            "srID": "BUF"
+          },
+          {
+            "tid": 8,
+            "srID": "CLE"
+          },
+          {
+            "tid": 25,
+            "srID": "POR"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1972,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 3,
+        "srID": "GSW"
+      }
+    },
+    {
+      "season": 1972,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 22,
+        "srID": "HOU"
+      }
+    },
+    {
+      "season": 1973,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 12,
+        "srID": "KCO"
+      }
+    },
+    {
+      "season": 1974,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 11,
+        "srID": "CAP"
+      }
+    },
+    {
+      "season": 1974,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 26,
+            "srID": "NOJ"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1975,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 11,
+        "srID": "WSB"
+      }
+    },
+    {
+      "season": 1976,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 12,
+        "srID": "KCK"
+      }
+    },
+    {
+      "season": 1976,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 27,
+            "srID": "NYN"
+          },
+          {
+            "tid": 28,
+            "srID": "SAS"
+          },
+          {
+            "tid": 20,
+            "srID": "DEN"
+          },
+          {
+            "tid": 14,
+            "srID": "IND"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1978,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 27,
+        "srID": "NJN"
+      }
+    },
+    {
+      "season": 1979,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 24,
+        "srID": "SDC"
+      }
+    },
+    {
+      "season": 1980,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 26,
+        "srID": "UTA"
+      }
+    },
+    {
+      "season": 1980,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 29,
+            "srID": "DAL"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1985,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 24,
+        "srID": "LAC"
+      }
+    },
+    {
+      "season": 1986,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 12,
+        "srID": "SAC"
+      }
+    },
+    {
+      "season": 1988,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 30,
+            "srID": "CHH"
+          },
+          {
+            "tid": 31,
+            "srID": "MIA"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1989,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 32,
+            "srID": "ORL"
+          },
+          {
+            "tid": 33,
+            "srID": "MIN"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1995,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 5,
+            "srID": "TOR"
+          },
+          {
+            "tid": 34,
+            "srID": "VAN"
+          }
+        ]
+      }
+    },
+    {
+      "season": 1998,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 11,
+        "srID": "WAS"
+      }
+    },
+    {
+      "season": 2002,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 34,
+        "srID": "MEM"
+      }
+    },
+    {
+      "season": 2003,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 30,
+        "srID": "NOH"
+      }
+    },
+    {
+      "season": 2004,
+      "phase": 4,
+      "type": "expansionDraft",
+      "info": {
+        "teams": [
+          {
+            "tid": 35,
+            "srID": "CHA"
+          }
+        ]
+      }
+    },
+    {
+      "season": 2009,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 21,
+        "srID": "OKC"
+      }
+    },
+    {
+      "season": 2013,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 27,
+        "srID": "BRK"
+      }
+    },
+    {
+      "season": 2014,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 30,
+        "srID": "NOP"
+      }
+    },
+    {
+      "season": 2015,
+      "phase": 0,
+      "type": "teamInfo",
+      "info": {
+        "tid": 35,
+        "srID": "CHO"
+      }
+    }
+  ]
+}

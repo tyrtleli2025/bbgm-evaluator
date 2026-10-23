@@ -27,6 +27,7 @@
       <nav class="main-nav" aria-label="Workspace views">
         <button class="nav-item active" id="overview-tab" data-tab="overview" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11h5v6H3zm9-8h5v14h-5zM3 3h5v4H3z"/></svg>Team overview</button>
         <button class="nav-item" id="trade-tab" data-tab="trade"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h13m-4-3 4 3-4 3M17 15H4m4-3-4 3 4 3"/></svg>Trade builder<span class="nav-tag">LIVE</span></button>
+        <button class="nav-item" id="series-tab" data-tab="series"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h8v5a4 4 0 0 1-8 0V3ZM6 5H3v2a4 4 0 0 0 4 4m7-6h3v2a4 4 0 0 1-4 4m-3 1v5m-3 0h6"/></svg>Playoff matchup</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="local-badge"><span class="status-dot"></span> Local workspace</div>
@@ -61,7 +62,7 @@
         </section>
 
         <div id="workspace" hidden>
-          <section class="analysis-toolbar" aria-label="Evaluation settings">
+          <section class="analysis-toolbar" id="analysis-toolbar" aria-label="Evaluation settings">
             <div class="toolbar-intro"><span class="section-kicker">EVALUATION MODEL</span><strong>Pinned BBGM game engine</strong></div>
             <label>Game format<select id="phase-select"><option value="regular">Regular season</option><option value="playoffs">Playoffs</option></select></label>
             <label>Player health<select id="health-select"><option value="current">Current injuries</option><option value="healthy">Fully healthy</option></select></label>
@@ -113,6 +114,32 @@
 
             <details class="panel trade-assumptions"><summary>Trade context & explicit assumptions</summary><p class="context-note" id="trade-context-note"></p><div class="search-fields"><label>Trading phase<select id="trade-phase-select"><option value="">Use export metadata</option><option value="0">Assume preseason</option><option value="1">Assume regular season</option><option value="2">Assume after deadline</option><option value="3">Assume playoffs</option><option value="4">Assume draft lottery</option><option value="5">Assume draft</option><option value="6">Assume after draft</option><option value="7">Assume re-signing</option><option value="8">Assume free agency</option></select></label><label>Game difficulty<input id="difficulty-input" type="number" min="-10" max="10" step="any" placeholder="Use export metadata"></label><label>Partner’s strategy<select id="strategy-select"><option value="">Use export metadata</option><option value="contending">Assume contending</option><option value="rebuilding">Assume rebuilding</option></select></label><label>Simulation seed<input id="seed-input" type="number" min="0" max="2147483647" value="12345"></label></div><p class="assumption-caption">Overrides are assumptions, not recovered export data. AI results depend on the selected partner’s strategy, league difficulty, transaction phase, and the game version.</p></details>
             <details class="panel collector-help"><summary>Import full trade context from your game</summary><p>Some exports omit the phase, team strategies, or difficulty. Open <a href="/collect-snapshot.js" target="_blank" rel="noopener">the snapshot collector</a>, copy its contents, and run it in the developer console of your open Basketball GM league. Import the downloaded JSON here.</p><p>The collector reads the current league without changing players, trades, or proposal settings. Draft-pick value and future seasons are not included in the current team impact score.</p></details>
+          </section>
+          <section id="series-view" aria-labelledby="series-heading" hidden>
+            <div class="section-heading"><div><span class="section-kicker">THE ROAD TO FOUR WINS</span><h2 id="series-heading">Playoff matchup</h2></div><span class="pill">Best of seven</span></div>
+            <article class="panel series-config">
+              <div class="series-fields">
+                <label>Your team<select id="series-team-select"></select></label>
+                <label>Opponent<select id="series-opponent-select"></select></label>
+                <label>Home-court advantage<select id="series-home-select"></select></label>
+                <label>Simulation budget<select id="series-budget"><option value="200">200 series · quick estimate</option><option value="1000">1,000 series · more precision</option><option value="2000">2,000 series · highest precision</option></select></label>
+                <label>Simulation seed<input id="series-seed" type="number" min="0" max="2147483647" value="12345"></label>
+              </div>
+              <div class="series-score-controls" id="series-score-controls" aria-label="Current series score"></div>
+              <p class="series-note" id="series-next-game"></p>
+              <div class="series-actions"><button class="button button-primary" id="series-run">Simulate series</button><button class="button button-quiet" id="series-cancel" hidden>Cancel</button><span id="series-status" role="status" aria-live="polite">Choose a matchup to begin.</span></div>
+              <div class="series-progress" id="series-progress" hidden><div></div></div>
+              <p class="series-note">First to four wins, with a 2–2–1–1–1 home schedule. After your first run, changing a team, injury, or setting automatically updates the estimate.</p>
+            </article>
+            <div class="notice notice-error" id="series-error" role="alert" hidden></div>
+            <article class="panel series-results" aria-label="Series prediction">
+              <div id="series-probabilities"></div>
+              <p class="series-note" id="series-result-note">Simulate this matchup to estimate each team’s chance of advancing.</p>
+              <div id="series-outcomes"></div>
+            </article>
+            <div class="section-heading"><div><span class="section-kicker">TEST A WHAT-IF</span><h2>Player availability</h2></div><button class="button button-quiet" id="series-reset-injuries">Reset to export</button></div>
+            <p class="series-note">Injuries are fixed for the entire series; players do not heal between games. Minor injuries (1–4 games remaining) use BBGM’s default playoff policy and reduce ratings by 2.5% per remaining game. “Out for series” removes the player from the rotation. New injuries are disabled.</p>
+            <div class="series-rosters" id="series-rosters"></div>
           </section>
           <details class="warnings-panel" id="warnings-panel" hidden><summary id="warnings-summary">Model notes</summary><ul id="warnings-list"></ul></details>
           <footer class="page-footer"><span>BBGM SOLVER <span class="footer-dot">·</span> CURRENT TEAM ANALYSIS</span><span>Frozen rosters. Reproducible simulations. Better-informed decisions.</span></footer>

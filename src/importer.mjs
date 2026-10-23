@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
+import { resolveTeamNames } from './team-names.mjs';
 
 const ratings = 'hgt stre spd jmp endu ins dnk ft fg tp oiq diq drb pss reb'.split(' ');
 const nonnegativeSettings = 'turnoverFactor stealFactor blockFactor assistFactor orbFactor foulRateFactor twoPointAccuracyFactor threePointAccuracyFactor threePointTendencyFactor ftAccuracyFactor'.split(' ');
@@ -69,7 +70,6 @@ export function normalizeLeague(data, inputHash = null) {
     'Possessions use a box-score estimator; efficiency ratings and strength are estimates.',
     'Confidence intervals describe simulation sampling only, not input or engine-model uncertainty.',
   ];
-  if (!data.teams) warnings.push('No team metadata: teams are labeled by ID and player names.');
   const teams = new Map();
   const pids = new Set();
   for (const raw of data.players) {
@@ -92,10 +92,13 @@ export function normalizeLeague(data, inputHash = null) {
     teams.get(p.tid).push(p);
   }
   if (teams.size < 2) throw new Error('At least two reconstructed teams are required');
+  const teamNames = resolveTeamNames(data,settings,teams.keys());
+  if ([...teamNames.values()].some(t=>t.source==='historical-reference')) warnings.push('Missing exported team names use historical NBA franchise names based on the league starting season; custom relocations require exported team metadata.');
+  if ([...teamNames.values()].some(t=>t.source==='id')) warnings.push('Some team names are unavailable; those teams are labeled by ID.');
   for (const [tid, roster] of teams) {
     roster.sort((a, b) => a.rosterOrder - b.rosterOrder || a.pid - b.pid);
     if (roster.length < settings.numPlayersOnCourt) throw new Error(`Team ${tid} has too few players`);
-    if (roster.length < settings.minRosterSize) warnings.push(`Team ${tid} has ${roster.length} players, below the league roster minimum; evaluated as exported.`);
+    if (roster.length < settings.minRosterSize) warnings.push(`${teamNames.get(tid).name} has ${roster.length} players, below the league roster minimum; evaluated as exported.`);
   }
   // Preserve transaction context separately from the simulation adapter. Historical
   // logs are unnecessary for current player trade value and expensive to clone.
@@ -107,7 +110,7 @@ export function normalizeLeague(data, inputHash = null) {
   const rawData = { gameAttributes: structuredClone(settings), players: contextPlayers,
     teams: structuredClone(data.teams), releasedPlayers: structuredClone(data.releasedPlayers),
     draftPicks: structuredClone(data.draftPicks) };
-  return { settings, teams: new Map([...teams].sort((a,b) => a[0]-b[0])), warnings, rawData,
+  return { settings, teams: new Map([...teams].sort((a,b) => a[0]-b[0])), teamNames, warnings, rawData,
     inputHash, schemaVersion: data.version, totalPlayers: data.players.length };
 }
 

@@ -218,3 +218,61 @@
   .impact-metric:last-child .impact-value strong { font-size: 18px; }
   .impact-metric:last-child .impact-value { gap: 4px; }
 }
+
+/* Playoff matchup */
+.series-score-controls { display: flex; align-items: end; gap: 20px; flex-wrap: wrap; margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.series-score-side { flex: 1; min-width: 180px; display: flex; align-items: end; gap: 12px; }
+.series-score-side label { display: flex; flex: 1; flex-direction: column; gap: 8px; font-size: 11px; }
+.series-score-side select { width: 100%; }
+.series-score-side .button { font-size: 11px; }
+.series-config, .series-results { padding: 25px; margin-bottom: 24px; }
+.series-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.series-fields label { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #5c6f60; }
+.series-fields select, .series-fields input { width: 100%; min-width: 0; }
+.series-fields input { border: 1px solid var(--line); border-radius: 7px; padding: 10px; background: white; }
+.series-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
+#series-status { font-size: 12px; color: #52664d; line-height: 1.6; }
+.series-note { font-size: 12px; color: #5d7057; line-height: 1.8; margin: 18px 0 0; }
+#series-rosters { margin-top: 20px; }
+.series-progress { height: 4px; overflow: hidden; background: #e3eadb; border-radius: 4px; margin-top: 18px; }
+.series-progress>div { height: 100%; background: #668c4d; transition: width .2s; }
+.series-probability-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.series-probability { padding: 24px; border-radius: 11px; background: #f4f2e9; display: flex; flex-direction: column; min-width: 0; }
+.series-probability.series-ours { background: #edf5e1; }
+.series-probability h3 { margin-top: 14px; font-size: 19px; overflow-wrap: anywhere; }
+.series-probability>strong { font-size: 53px; letter-spacing: -2px; margin: 8px 0; font-variant-numeric: tabular-nums; }
+.series-probability>span:not(.section-kicker) { font-size: 12px; }
+.series-probability small { font-size: 11px; line-height: 1.7; color: #56684c; margin-top: 15px; }
+.series-odds-bar { background: #c3af84; height: 10px; border-radius: 8px; overflow: hidden; margin-top: 22px; }
+.series-odds-bar>div { background: var(--green); height: 100%; }
+#series-outcomes { margin-top: 20px; }
+#series-outcomes caption { text-align: left; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+#series-outcomes th, #series-outcomes td { font-size: 12px; }
+.series-rosters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.series-roster { overflow: hidden; }
+.series-roster .panel-header { padding: 23px; gap: 12px; }
+.series-roster h3 { margin: 0; }
+.series-roster .table-scroll { max-height: 650px; overflow: auto; }
+.series-roster select { font-size: 11px; width: 170px; }
+.series-roster th, .series-roster td { padding: 14px 12px; }
+.series-roster .player-name { min-width: 100px; display: block; }
+@media(max-width:1200px) { .series-rosters { grid-template-columns: 1fr; } }
+@media(max-width:720px) {
+  .main-nav { gap: 3px; }
+  .nav-item { font-size: 10px; padding: 12px 6px; gap: 5px; }
+  .nav-item svg { width: 15px; height: 15px; }
+  .series-config, .series-results { padding: 18px; }
+  .series-fields { grid-template-columns: 1fr; gap: 16px; }
+  .series-probability-grid { gap: 10px; }
+  .series-probability { padding: 15px 12px; }
+  .series-probability h3 { font-size: 14px; min-height: 36px; }
+  .series-probability>strong { font-size: 36px; }
+  .series-probability small { font-size: 10px; }
+  .series-probability>span:not(.section-kicker) { font-size: 10px; }
+  #series-outcomes th, #series-outcomes td { font-size: 10px; padding: 12px 7px; }
+  .series-roster .panel-header { padding: 20px; }
+  .series-roster select { width: 140px; font-size: 10px; }
+  .series-roster .player-name { min-width: 85px; }
+  .series-roster th, .series-roster td { padding-left: 8px; padding-right: 8px; }
+  #series-reset-injuries { font-size: 10px; padding: 10px; }
+}

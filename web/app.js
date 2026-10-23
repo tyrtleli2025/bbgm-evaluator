@@ -1,4 +1,5 @@
 import { createTradeBuilder } from './trade-builder.js';
+import { createPlayoffSeries } from './playoff-series.js';
 
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -21,37 +22,41 @@ function showError(error) { $('error-banner').textContent = error?.message ?? St
 function clearError() { $('error-banner').hidden = true; }
 function selectedTeam() { return state.session?.teams.find(t => t.tid === Number($('team-select').value)); }
 function teamName(tid) { return state.session?.teams.find(t => t.tid === tid)?.name ?? `Team ${tid}`; }
-function report() { return state.tab === 'overview' ? state.evaluation : builder.report(); }
+function report() { return state.tab === 'overview' ? state.evaluation : state.tab === 'series' ? playoffs.report() : builder.report(); }
 function setBusy() {
   const busy = !!state.job || state.importing;
   for (const id of ['import-button','empty-import-button','team-select','evaluate-button','phase-select','health-select','games-select','seed-input']) {
     $(id).disabled = busy || (!state.session && !['import-button','empty-import-button'].includes(id));
   }
-  builder.setDisabled(busy || !state.session);
+  builder.setDisabled(busy || !state.session || state.tab !== 'trade');
+  playoffs.setDisabled(busy || !state.session || state.tab !== 'series');
   $('download-button').disabled = busy || !report();
   $('job-panel').hidden = !state.job;
   $('cancel-button').disabled = false;
   $('import-button').textContent = state.importing ? 'Reading league…' : '＋ Import league';
 }
 function switchTab(tab) {
+  if (state.tab === 'series' && tab !== 'series') void playoffs.cancel();
+  if (state.tab === 'trade' && tab !== 'trade') void builder.cancel();
   state.tab = tab;
   for (const item of document.querySelectorAll('[data-tab]')) {
     item.classList.toggle('active', item.dataset.tab === tab);
     if (item.dataset.tab === tab) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current');
   }
   $('overview-view').hidden = tab !== 'overview'; $('trade-view').hidden = tab !== 'trade';
-  $('view-label').textContent = tab === 'overview' ? 'Team overview' : 'Trade builder';
+  $('series-view').hidden = tab !== 'series'; $('analysis-toolbar').hidden = tab === 'series';
+  $('view-label').textContent = tab === 'overview' ? 'Team overview' : tab === 'series' ? 'Playoff matchup' : 'Trade builder';
   renderWarnings(); setBusy();
 }
 function clearResults() {
-  state.evaluation = null; builder.reset();
+  state.evaluation = null; builder.reset(); playoffs.reset();
   renderEvaluation(); renderWarnings(); setBusy();
 }
 function renderTeam() {
   const team = selectedTeam(); if (!team) return;
   $('team-title').textContent = team.name;
   $('team-subtitle').textContent = `Your roster in focus. ${team.players.slice().sort((a,b) => b.ovr-a.ovr).slice(0,3).map(p => p.name).join(' · ')}`;
-  $('season-label').textContent = `${state.session.season} SEASON / TEAM ${team.tid}`;
+  $('season-label').textContent = `${state.session.season} SEASON / ${team.abbrev}`;
   $('team-meta').hidden = false;
   $('team-meta').textContent = `${team.players.length} players  ·  ${state.session.teams.length} teams  ·  ${state.session.tradeContext.phaseLabel}`;
   $('league-label').textContent = state.session.filename;
@@ -103,9 +108,10 @@ async function importFile(file) {
   clearError(); state.importing = true; setBusy();
   try {
     await builder.cancel();
+    await playoffs.cancel();
     const imported = await api('/api/import', {method:'POST',headers:{'Content-Type':'application/octet-stream','X-Filename':encodeURIComponent(file.name)},body:file});
     state.session = imported; state.version++;
-    $('team-select').innerHTML = imported.teams.map(t => `<option value="${t.tid}">${escape(t.name)} · ${t.tid}</option>`).join('');
+    $('team-select').innerHTML = imported.teams.map(t => `<option value="${t.tid}">${escape(t.name)}</option>`).join('');
     $('team-select').value = String(imported.teamId);
     $('trade-phase-select').value = '';
     $('import-empty').hidden = true; $('workspace').hidden = false;
@@ -133,6 +139,7 @@ async function startJob(type) {
   const job = state.job;
   try {
     await builder.cancel();
+    await playoffs.cancel();
     if (state.job !== job) return;
     const response = await api('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:state.session.sessionId,type,options:jobOptions(type)})});
     job.id = response.jobId;
@@ -175,7 +182,7 @@ function downloadReport() {
   const result = report(); if (!result) return;
   const blob = new Blob([JSON.stringify(result,null,2)],{type:'application/json'}), url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url;
-  a.download = `bbgm-${state.session.season}-team${selectedTeam().tid}-${state.tab === 'overview' ? 'evaluation' : 'trade'}.json`;
+  a.download = `bbgm-${state.session.season}-team${selectedTeam().tid}-${state.tab === 'overview' ? 'evaluation' : state.tab}.json`;
   a.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
 }
 
@@ -183,6 +190,12 @@ const builder = createTradeBuilder({
   $, api, escape, number, signed, interval, money, selectedTeam, teamName,
   getSession:() => state.session, getOptions:jobOptions,
   onChange:() => { renderWarnings(); setBusy(); },
+});
+const playoffs = createPlayoffSeries({
+  $, api, escape, number, selectedTeam, getSession:() => state.session,
+  onTeamChange:tid => { $('team-select').value = String(tid); $('team-select').dispatchEvent(new Event('change')); },
+  onChange:() => { renderWarnings(); setBusy(); },
+  beforeRun:() => builder.cancel(),
 });
 
 $('import-button').addEventListener('click',() => $('league-file').click());

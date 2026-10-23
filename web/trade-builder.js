@@ -280,7 +280,7 @@ export function createTradeBuilder(helpers) {
     invalidate(); selected.clear(); picks.clear(); protectedPlayers.clear(); filters.clear(); sorts.clear();
     suggestedPlayers = new Set(); impactState = 'empty';
     const otherTeams = (getSession()?.teams ?? []).filter(t => t.tid !== selectedTeam()?.tid);
-    $('opponent-select').innerHTML = otherTeams.map(t => `<option value="${t.tid}">${escape(t.name)} · ${t.tid}</option>`).join('');
+    $('opponent-select').innerHTML = otherTeams.map(t => `<option value="${t.tid}">${escape(t.name)}</option>`).join('');
     $('strategy-select').value = ''; $('difficulty-input').value = ''; $('trade-phase-select').value = '';
     render();
   }

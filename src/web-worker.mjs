@@ -4,6 +4,7 @@ import { rankProposals } from './proposals.mjs';
 import { searchTrades } from './search.mjs';
 import { previewTrade } from './trade-preview.mjs';
 import { makeTradeWork } from './negotiation.mjs';
+import { evaluateSeries } from './series.mjs';
 
 const { league, bundle, type, options, baselineCache } = workerData;
 const started = performance.now();
@@ -14,6 +15,10 @@ try {
     const total = (league.teams.size - 1) * options.gamesPerOpponent;
     result = evaluate(league, { ...options, onProgress: p => onProgress({
       ...p, stage: 'Simulating current team', completed: p.simulatedGames, total,
+    }) });
+  } else if (type === 'series') {
+    result = evaluateSeries(league, { ...options, onProgress: p => onProgress({
+      ...p, stage: 'Simulating playoff series', completed: p.completedSeries, total: options.series,
     }) });
   } else if (type === 'trade') {
     result = previewTrade(league, options.scenario, { ...options, baselineCache, onProgress,

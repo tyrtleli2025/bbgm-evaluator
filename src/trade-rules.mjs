@@ -1,3 +1,5 @@
+import { teamName } from './team-names.mjs';
+
 // Player-only acceptance and financial rules from the pinned ZenGM source.
 // Audit copies and parity tests accompany this port. No pick-value approximation
 // is passed off as game acceptance: trades containing picks remain conditional.
@@ -84,17 +86,17 @@ function assessAcceptance(league, sides, settings, options, missing, assumptions
     return null;
   }
   const userTid = requestedUser;
-  if (settings.userTid !== userTid) assumptions.push(`Controlled team is assumed to be ${userTid}; the export ${settings.userTid === undefined ? 'omits userTid' : `specifies ${settings.userTid}`}.`);
+  if (settings.userTid !== userTid) assumptions.push(`Controlled team is assumed to be ${teamName(league,userTid)}; the export ${settings.userTid === undefined ? 'omits userTid' : `specifies ${settings.userTid}`}.`);
   const ours = sides.find(s => s.tid === userTid), theirs = sides.find(s => s.tid !== userTid);
   const metadata = league.rawData?.teams?.find(t => t.tid === theirs.tid);
   let strategy = metadata?.strategy;
   const override = options.strategies?.[theirs.tid];
   if (override !== undefined && override !== strategy) {
-    assumptions.push(`Team ${theirs.tid} strategy is assumed to be ${override}.`);
+    assumptions.push(`${teamName(league,theirs.tid)} strategy is assumed to be ${override}.`);
     strategy = override;
   }
   const errors = [];
-  if (!['contending', 'rebuilding'].includes(strategy)) errors.push(`Missing team ${theirs.tid} strategy for AI acceptance.`);
+  if (!['contending', 'rebuilding'].includes(strategy)) errors.push(`Missing ${teamName(league,theirs.tid)} strategy for AI acceptance.`);
   for (const key of ['phase', 'difficulty', 'season', 'salaryCap', 'minContract', 'maxContract']) {
     if (!finite(settings[key]) || (key === 'salaryCap' && settings[key] <= 0)) errors.push(`Missing or invalid ${key} for AI acceptance.`);
   }
@@ -153,7 +155,7 @@ export function assessTrade(league, scenario, options = {}) {
     if (!Number.isInteger(side?.tid) || !roster || !Array.isArray(side.send) || (side.picks !== undefined && !Array.isArray(side.picks))) {
       reject('Each trade side needs a valid team ID and player/pick ID arrays.'); return finish();
     }
-    if (league.rawData?.teams?.find(t => t.tid === side.tid)?.disabled) reject(`Team ${side.tid} is disabled.`);
+    if (league.rawData?.teams?.find(t => t.tid === side.tid)?.disabled) reject(`${teamName(league,side.tid)} is disabled.`);
     const players = [];
     for (const pid of side.send) {
       const p = roster.find(p => p.pid === pid);
@@ -187,10 +189,10 @@ export function assessTrade(league, scenario, options = {}) {
     const releases = league.rawData?.releasedPlayers?.filter(p => p.tid === side.tid) ?? [];
     const payrollRecords = [...roster, ...releases];
     const salaryKnown = [...payrollRecords, ...other.players].every(p => nonnegative(p.contract?.amount));
-    if (capped && !salaryKnown) unknown(`Team ${side.tid} has missing contract amounts.`);
+    if (capped && !salaryKnown) unknown(`${teamName(league,side.tid)} has missing contract amounts.`);
     const sumSalary = players => players.reduce((sum, p) => sum + p.contract.amount, 0);
     const row = { tid: side.tid, rosterBefore: roster.length, rosterAfter: roster.length - side.players.length + other.players.length };
-    if (row.rosterAfter < settings.minRosterSize || row.rosterAfter > settings.maxRosterSize) rosterWarnings.push(`Team ${side.tid} would have ${row.rosterAfter} players, outside the roster limit; BBGM's trade check does not reject this, but roster moves may be needed before playing.`);
+    if (row.rosterAfter < settings.minRosterSize || row.rosterAfter > settings.maxRosterSize) rosterWarnings.push(`${teamName(league,side.tid)} would have ${row.rosterAfter} players, outside the roster limit; BBGM's trade check does not reject this, but roster moves may be needed before playing.`);
     if (salaryKnown) {
       row.payrollBefore = sumSalary(payrollRecords);
       row.outgoingSalary = sumSalary(side.players); row.incomingSalary = sumSalary(other.players);
@@ -198,8 +200,8 @@ export function assessTrade(league, scenario, options = {}) {
       row.salaryRatio = row.outgoingSalary > 0 ? Math.floor(100 * row.incomingSalary / row.outgoingSalary) : row.incomingSalary > 0 ? null : 100;
       row.ratioInfinite = row.outgoingSalary === 0 && row.incomingSalary > 0;
       const overCap = row.payrollAfter > settings.salaryCap;
-      if (settings.salaryCapType === 'soft' && overCap && (row.ratioInfinite || row.salaryRatio > settings.softCapTradeSalaryMatch)) reject(`Team ${side.tid} fails the soft-cap salary match (${row.ratioInfinite ? 'infinite' : row.salaryRatio}% incoming/outgoing).`);
-      if (settings.salaryCapType === 'hard' && overCap && row.payrollAfter > row.payrollBefore) reject(`Team ${side.tid} increases payroll above the hard cap.`);
+      if (settings.salaryCapType === 'soft' && overCap && (row.ratioInfinite || row.salaryRatio > settings.softCapTradeSalaryMatch)) reject(`${teamName(league,side.tid)} fails the soft-cap salary match (${row.ratioInfinite ? 'infinite' : row.salaryRatio}% incoming/outgoing).`);
+      if (settings.salaryCapType === 'hard' && overCap && row.payrollAfter > row.payrollBefore) reject(`${teamName(league,side.tid)} increases payroll above the hard cap.`);
     }
     teams.push(row);
   }

@@ -17,8 +17,10 @@ npm start
 Open **http://127.0.0.1:3000**. No npm installation is needed. To use a different
 port, run `PORT=3001 npm start`. Stop the server with Ctrl+C.
 
-1. Import a BBGM `.json` or `.json.gz` export and select your team. Team names
-   are displayed when exported; otherwise use team IDs and the roster names.
+1. Import a BBGM `.json` or `.json.gz` export and select your team. Names supplied
+   in the export take priority. Real-player exports without team metadata use
+   historical NBA franchise names, including season-specific relocations and
+   rebrands. Team IDs remain available for command-line selection.
 2. Click **Evaluate team** for estimated net rating, offense, defense, win rate,
    player production, and offensive/defensive/rebounding synergy. Choose regular
    season or playoffs, current injuries or full health, and the simulation budget.
@@ -32,12 +34,43 @@ port, run `PORT=3001 npm start`. Stop the server with Ctrl+C.
    marked in the rosters. **Clear** removes the selections and protections.
 5. Use **Refine estimate** for a larger simulation budget, or **Export report**
    to download the current evaluation or trade comparison as JSON.
+6. Open **Playoff matchup**, select your team and opponent, choose home-court
+   advantage, and click **Simulate series**. The tab runs 200, 1,000, or 2,000
+   independent best-of-seven series and shows each team's chance of advancing,
+   95% sampling intervals, and probabilities of each 4–0 through 4–3 result.
+   Use either roster's availability selectors to keep exported injuries, make a
+   player healthy, play through a minor injury, or rule them out for the series.
+   After the first run, edits automatically recalculate the odds. **Reset to
+   export** restores both rosters. **Export report** also supports series results.
+
+Playoff matchup settings are separate from the overview's evaluation settings.
+Injuries remain fixed throughout each series, without healing or new injuries.
+The pinned default playoff policy allows players with 1–4 injury games remaining
+to play at reduced ratings (2.5% reduction per remaining game); greater injuries
+keep them out. At least five available players are needed in a standard league.
+Changing inputs cancels outdated work; repeated scenarios reuse cached results.
+Set the current series score to evaluate an in-progress best-of-seven series.
+Each team's **Won next game +1** button records a win and recalculates the odds;
+**Reset to 0–0** starts over. The remaining games follow their original game
+numbers in the home-court schedule (a 3–1 series resumes at Game 5). Completed
+series show exact 100%/0% probabilities. Changing either team resets the score.
+Probabilities cover the selected series, not the entire playoff bracket.
+Historical/custom series lengths are not inferred.
+Neutral playoff settings are honored. Sampling intervals do not measure engine
+or input uncertainty, and more simulations reduce sampling noise only.
 
 Uploads remain in local server memory. The program never edits the imported
 file or makes trades in Basketball GM. Reimport after restarting the server.
 The server binds only to `127.0.0.1` and runs one worker at a time. Runs can be
 cancelled and have a five-minute maximum. Uploads are limited to 64 MiB
 (256 MiB decompressed); the last three imports are retained.
+
+The bundled team-name reference combines [ZenGM's historical franchise events](https://github.com/zengm-games/zengm/blob/master/data/real-player-data.basketball.json)
+with the [historical NBA team-name reference](https://github.com/alexnoob/BasketBall-GM-Rosters/blob/master/team%20data.json).
+It resolves BBGM IDs from the league's starting season and follows subsequent
+name changes. Custom relocations or reordered franchise IDs need exported team
+metadata. The reference works offline; source URLs and hashes are recorded in
+`src/data/historical-teams.json`.
 
 ### Live trade impact
 
@@ -383,7 +416,8 @@ Regular and playoff modes are separate. The engine changes fatigue and synergy
 in the playoffs; a playoff-style game against every roster is not a playoff
 bracket simulation. The original 2004 export had all 15 ratings for 364 rostered
 players on 30 teams, all healthy, but no team metadata. Team 26 has only eight
-players. We use IDs/player names and evaluate the rosters exactly as exported.
+players. Historical NBA names supply the missing labels, and the rosters are
+evaluated exactly as exported.
 
 Current-health mode follows the upstream default injury thresholds: no playing
 through injuries in regular games; up to four games remaining in playoffs.

@@ -6,6 +6,7 @@ import { Worker } from 'node:worker_threads';
 import { pathToFileURL } from 'node:url';
 import { normalizeLeague } from './importer.mjs';
 import { normalizeTradeScenario, previewBaselineKey, tradeAssessment } from './trade-preview.mjs';
+import { normalizeSeriesInjuries, prepareSeriesTeams, normalizeSeriesScore } from './series.mjs';
 
 const MAX_UPLOAD = 64 * 1024 * 1024;
 const MAX_JSON = 256 * 1024 * 1024;
@@ -16,6 +17,7 @@ const assets = new Map([
   ['/index.html', ['../web/index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['../web/app.js', 'text/javascript; charset=utf-8']],
   ['/trade-builder.js', ['../web/trade-builder.js', 'text/javascript; charset=utf-8']],
+  ['/playoff-series.js', ['../web/playoff-series.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['../web/styles.css', 'text/css; charset=utf-8']],
   ['/collect-proposals.js', ['../scripts/collect-proposals.js', 'text/javascript; charset=utf-8']],
   ['/collect-snapshot.js', ['../scripts/collect-snapshot.js', 'text/javascript; charset=utf-8']],
@@ -52,8 +54,8 @@ export function importSnapshot(bytes, filename = 'league.json') {
   const metadata = new Map((Array.isArray(raw.teams) ? raw.teams : []).map(t => [t.tid, t]));
   const teams = [...league.teams].map(([tid, roster]) => {
     const team = metadata.get(tid);
-    return { tid, name: team ? [team.region, team.name].filter(Boolean).join(' ') || `Team ${tid}` : `Team ${tid}`,
-      region: team?.region ?? '', abbrev: team?.abbrev ?? String(tid),
+    const identity = league.teamNames.get(tid);
+    return { tid, name:identity.name, region:identity.region, abbrev:identity.abbrev,
       strategy: team?.strategy ?? null,
       picks: (raw.draftPicks ?? []).filter(p=>p.tid===tid).map(p=>({dpid:p.dpid,season:p.season,round:p.round,
         originalTid:p.originalTid,desc:p.desc??`${p.season} round ${p.round} (team ${p.originalTid})`})),
@@ -90,6 +92,19 @@ export function validateJobOptions(league, type, input = {}) {
   if (!['regular', 'playoffs'].includes(options.phase)) throw fail('Select regular-season or playoff evaluation');
   if (!['current', 'healthy'].includes(options.health)) throw fail('Select current or healthy availability');
   if (options.gamesPerOpponent % 2) throw fail('Games per opponent must be even');
+  if (type === 'series') {
+    options.currentScore = normalizeSeriesScore(input.currentScore);
+    options.phase = 'playoffs';
+    options.opponentId = integer(input.opponentId, undefined, 0, Number.MAX_SAFE_INTEGER, 'Opponent ID');
+    if (!league.teams.has(options.opponentId)) throw fail('Selected opponent is not in this league');
+    if (options.opponentId === options.teamId) throw fail('Select two different teams');
+    options.homeCourt = integer(input.homeCourt, options.teamId, 0, Number.MAX_SAFE_INTEGER, 'Home-court team');
+    if (![options.teamId, options.opponentId].includes(options.homeCourt)) throw fail('Home-court advantage must belong to one of the selected teams');
+    options.series = integer(input.series, 200, 1, 2000, 'Series count');
+    if (league.settings.maxOvertimesPlayoffs !== null) throw fail('Series mode requires unlimited playoff overtimes');
+    options.injuries = normalizeSeriesInjuries(league, options.teamId, options.opponentId, input.injuries);
+    prepareSeriesTeams(league, options); // Reject impossible lineups before cancelling a running job.
+  }
   if (type === 'search') {
     Object.assign(options, {
       iterations: integer(input.iterations, 500, 1, 5000, 'Candidate budget'),
@@ -190,18 +205,19 @@ export function createApp({ maxJobMs = 5 * 60 * 1000 } = {}) {
         let body;
         try { body = JSON.parse((await readBody(request, 16384)).toString()); }
         catch (error) { if (error.status) throw error; throw fail('Expected a JSON request'); }
-        if (!body || !['evaluate', 'search', 'proposals','trade','make-work'].includes(body.type)) throw fail('Unknown job type');
+        if (!body || !['evaluate', 'search', 'proposals','trade','make-work','series'].includes(body.type)) throw fail('Unknown job type');
         const session = sessions.get(body.sessionId);
         if (!session) throw fail('Import a league first; this session has expired', 404);
         if (body.type === 'proposals' && !session.bundle) throw fail('Import a collected proposal bundle first');
         const options = validateJobOptions(session.league, body.type, body.options);
         const running = [...jobs.values()].filter(job=>job.status==='running');
         for (const job of running) {
-          if (body.replace === true && job.sessionId===body.sessionId && ['trade','make-work'].includes(job.type)) stop(job,'cancelled');
+          if (body.replace === true && job.sessionId===body.sessionId &&
+            (['trade','make-work'].includes(body.type) && ['trade','make-work'].includes(job.type) || body.type==='series' && job.type==='series')) stop(job,'cancelled');
           else throw fail('A job is already running. Cancel it or wait for it to finish.',409);
         }
         const jobId = randomUUID();
-        const cacheKey = body.type==='trade' ? JSON.stringify(options) : null;
+        const cacheKey = ['trade','series'].includes(body.type) ? `${body.type}:${JSON.stringify(options)}` : null;
         const cachedResult = cacheKey ? session.previews.get(cacheKey) : null;
         const job = { status: 'running', progress: { stage: 'Starting', completed: 0 }, startedAt: Date.now(),sessionId:body.sessionId,type:body.type };
         if (cachedResult) {

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { prepareTeam, simulate } from './adapter.mjs';
+import { teamName } from './team-names.mjs';
 
 const manifest = JSON.parse(readFileSync(new URL('../vendor/zengm/manifest.json', import.meta.url)));
 const mean = xs => xs.reduce((s,x) => s+x, 0) / xs.length;
@@ -148,6 +149,6 @@ export function evaluate(league, { teamId, phase = 'regular', health = 'current'
     warnings:[...league.warnings, 'Game win rate is not playoff-series or championship probability.',
       ...(league.settings.neutralSite === 'finals' ? ['Generic matchups are not finals; finals-only neutral venues are not applied.'] : []),
       ...(gamesPerOpponent < 20 ? ['Small simulation budget: use more games before comparing close scores.'] : [])],
-    teams:targets.map(tid=>summarize(tid,observations.get(tid),league.teams.get(tid))).sort((a,b)=>b.strength-a.strength),
+    teams:targets.map(tid=>({...summarize(tid,observations.get(tid),league.teams.get(tid)),name:teamName(league,tid)})).sort((a,b)=>b.strength-a.strength),
   };
 }
