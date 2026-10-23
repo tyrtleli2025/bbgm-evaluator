@@ -110,7 +110,8 @@ export function normalizeLeague(data, inputHash = null) {
   const rawData = { gameAttributes: structuredClone(settings), players: contextPlayers,
     teams: structuredClone(data.teams), releasedPlayers: structuredClone(data.releasedPlayers),
     draftPicks: structuredClone(data.draftPicks) };
-  return { settings, teams: new Map([...teams].sort((a,b) => a[0]-b[0])), teamNames, warnings, rawData,
+  const prospects = data.players.filter(p => p.tid === -2).map(p => ({ ...structuredClone(p), rating: structuredClone(p.ratings?.at(-1)) }));
+  return { prospects, settings, teams: new Map([...teams].sort((a,b) => a[0]-b[0])), teamNames, warnings, rawData,
     inputHash, schemaVersion: data.version, totalPlayers: data.players.length };
 }
 

@@ -276,3 +276,13 @@
   .series-roster th, .series-roster td { padding-left: 8px; padding-right: 8px; }
   #series-reset-injuries { font-size: 10px; padding: 10px; }
 }
+
+.draft-board-panel .table-scroll { max-height: 380px; overflow: auto; }
+.draft-board-panel th { position: sticky; top: 0; background: var(--paper); z-index: 1; }
+
+.advisor-packages { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.advisor-packages li { margin-bottom: 10px; line-height: 1.6; }
+.advisor-protection { margin-top: 20px; }
+#advisor-protected { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 12px; padding-top: 18px; }
+.advisor-assumption, #advisor-protected label { font-size: 12px; line-height: 1.6; }
+@media(max-width:720px) { .main-nav { flex-wrap: wrap; } .nav-item { flex: 1 1 28%; border-radius: 7px; } .advisor-packages { grid-template-columns: 1fr; gap: 12px; } }

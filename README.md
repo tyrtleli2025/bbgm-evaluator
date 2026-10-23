@@ -471,3 +471,79 @@ The vendored ZenGM code is copyright ZenGM, LLC, under its custom license, which
 is included in [vendor/zengm/LICENSE.md](vendor/zengm/LICENSE.md). This project
 is a local evaluator. Keep that license with any shared upstream source; the
 upstream license restricts public hosting and distribution of runnable products.
+
+### Draft prospects
+
+The **Draft prospects** tab uses true exported ratings, with no scouting fuzz.
+Import a full league snapshot in the draft year. Select 1–6 undrafted players,
+individually or by board range (start 10, count 6 selects ranks 10–15). Board order
+uses exported player value, falling back to OVR; it does not predict who will
+remain available at your pick. Already drafted players are excluded.
+
+The pinned ZenGM basketball development, OVR, and coaching formulas generate 200
+five-season paths per prospect. POT is descriptive, never a target or cap. The
+first projected season is the preseason after the draft. Choose a competitive
+window and an explicit effective coaching level (default 34, neutral effect).
+
+Team fit uses 20 shared scenarios, aging teammates and sampled opponents and
+simulating home/away games with and without each prospect. Scores are weighted
+mean changes in net points per 100 possessions; the win-soon weights are
+5/4/2/1/1, balanced 1/1/1/1/1, and long-term 1/1/2/4/5. The view also reports
+projected minutes, synergy changes, 10th–90th percentile OVR ranges, and the
+chance of reaching OVR 50 in each year. OVR 50 is a transparent ability threshold,
+not a guaranteed rotation spot. Wide impact intervals mean close rankings may
+be inconclusive. Reports can be exported with the existing export button.
+
+This first version retains all current roster members, assumes full health,
+uses automatic OVR-ordered rotations with OVR as a rotation-value proxy, and
+holds league rules fixed. Historical real-player determinism, retirement,
+future transactions, salaries, roster-limit cuts, and trade-up costs are not
+modeled. Opponent coaching is fixed at 34. Projections are conditional scenarios,
+not forecasts of the actual future roster or guarantees of development.
+
+### Five-year trade advisor
+
+Open **Trade advisor**, choose Contend now, Balanced, or Rebuild, protect any
+players you want to keep, and click **Recommend trades**. Budgets of 200, 500,
+or 1,500 package samples are supplemented by 12, 24, or 40 upstream player-only
+negotiations. Package sizes are unrestricted by a one-for-one or two-for-one
+rule. Picks are excluded. The advisor evaluates one transaction at a time;
+reimport after making a deal in BBGM before requesting the next recommendation.
+
+Candidates must pass the pinned AI acceptance and transaction checks, stay
+within both teams' roster limits, and satisfy the optional maximum added annual
+commitment constraint in every projected year. Missing phase, strategy, value,
+or cap data is reported. If an export omits released-player liabilities, the
+user may explicitly assume zero liabilities; results then remain conditional.
+This assumption never changes the imported snapshot. The trade builder opens
+recommendations against the original snapshot and may still flag missing data.
+
+Six common stochastic development paths per player screen packages by projected
+rotation OVR. Up to six finalists include the best immediate and future screens.
+The simulator compares finalists with keeping the current roster, using 16
+shared development scenarios and paired home/away games against a sample of
+opponents. Traded opponents are updated. The current year uses current ratings
+and the selected injury policy; the following four years use healthy projected
+players. Window weights are 5/4/2/1/1, 1/1/1/1/1, and 1/1/2/4/5 respectively.
+No global optimum or future acceptance is guaranteed.
+
+The primary score is weighted net-rating improvement under existing contracts.
+After expiration, roster vacancies are filled to a common comparison size with
+identical fixed benchmark players, using the ratings of the median player in
+the league's bottom OVR quartile. This is an explicit replacement scenario, not
+a guaranteed lower bound or a claim that those players can be signed. A separate
+**if retained** projection keeps everyone. Future re-signing and replacement
+salaries are unknown; payroll tables contain only existing commitments and
+exported released-player obligations. No future cap growth, retirements,
+historical-player determinism, transactions, picks, or luxury tax is modeled.
+Opponent coaching is 34; your effective coaching assumption is configurable.
+Future rotations use OVR as a valueNoPot proxy.
+
+Results highlight the best positive immediate and future estimates, and the
+lowest exported player value surrendered among finalists reaching at least half
+the best weighted gain. Financial consequences are displayed separately from
+basketball impact. Confidence intervals describe development/game sampling and
+do not correct for choosing the winning candidate after a search. If no finalist
+improves the selected objective, the advisor recommends keeping the roster.
+Open a package in **Trade builder** for its detailed current-team preview, or
+export the full advisor report as JSON.

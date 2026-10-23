@@ -326,6 +326,11 @@ export function createTradeBuilder(helpers) {
   });
   $('cancel-trade-button').addEventListener('click',() => void cancel());
 
-  return {reset,refresh,render,renderContext,renderBudget,cancel,report:() => result,
+  return {loadScenario:scenario => {
+    reset();
+    $('opponent-select').value = String(scenario.teams.find(t=>t.tid!==selectedTeam().tid).tid);
+    for(const side of scenario.teams) { selected.set(side.tid,new Set(side.send)); picks.set(side.tid,new Set(side.picks??[])); }
+    render(); refresh();
+  },reset,refresh,render,renderContext,renderBudget,cancel,report:() => result,
     setDisabled:value => { disabled = value; applyDisabled(); },isBusy:() => !!job};
 }

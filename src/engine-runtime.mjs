@@ -11,6 +11,7 @@ export const g = {
   },
 };
 export const helpers = {
+  entries: Object.entries,
   bound: (value, min, max) => Math.max(min, Math.min(max, value)),
   sigmoid: (x, a, b) => 1 / (1 + Math.exp(-a * (x - b))),
   // These helpers only format disabled notification text, not game outcomes.

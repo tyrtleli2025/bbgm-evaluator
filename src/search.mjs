@@ -26,7 +26,7 @@ export function rosterProxy(roster, { phase = 'regular', health = 'current', num
 
 // Structural sharing keeps the search cheap even when the uploaded export has
 // years of player history. No arrays or objects owned by the caller are mutated.
-function applyTrade(league, scenario) {
+export function applyTrade(league, scenario) {
   const teams = new Map(league.teams), moved = new Map(), transfers = [];
   for (const [i,side] of scenario.teams.entries()) {
     const destination = scenario.teams[1-i].tid;
@@ -76,7 +76,7 @@ function pickPlayers(roster, count, random, incoming) {
   return chosen.sort((a,b) => a-b);
 }
 
-function proposal(league, teamId, opponents, random, parentOffers) {
+export function proposal(league, teamId, opponents, random, parentOffers) {
   if (parentOffers.length && random() < 0.4) {
     const source = parentOffers[Math.floor(random()*parentOffers.length)];
     const scenario = structuredClone(source.scenario);

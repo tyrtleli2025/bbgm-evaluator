@@ -1,3 +1,4 @@
+import { recommendTrades } from './advisor.mjs';
 import { parentPort, workerData } from 'node:worker_threads';
 import { evaluate } from './evaluator.mjs';
 import { rankProposals } from './proposals.mjs';
@@ -5,6 +6,8 @@ import { searchTrades } from './search.mjs';
 import { previewTrade } from './trade-preview.mjs';
 import { makeTradeWork } from './negotiation.mjs';
 import { evaluateSeries } from './series.mjs';
+
+import { evaluateDraft } from './draft.mjs';
 
 const { league, bundle, type, options, baselineCache } = workerData;
 const started = performance.now();
@@ -16,6 +19,10 @@ try {
     result = evaluate(league, { ...options, onProgress: p => onProgress({
       ...p, stage: 'Simulating current team', completed: p.simulatedGames, total,
     }) });
+  } else if (type === 'advisor') {
+    result = await recommendTrades(league,{...options,onProgress});
+  } else if (type === 'draft') {
+    result = evaluateDraft(league,{...options,onProgress});
   } else if (type === 'series') {
     result = evaluateSeries(league, { ...options, onProgress: p => onProgress({
       ...p, stage: 'Simulating playoff series', completed: p.completedSeries, total: options.series,

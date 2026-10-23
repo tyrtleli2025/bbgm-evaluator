@@ -1,3 +1,4 @@
+import { validateAdvisorOptions } from './advisor.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { gunzipSync } from 'node:zlib';
@@ -8,6 +9,8 @@ import { normalizeLeague } from './importer.mjs';
 import { normalizeTradeScenario, previewBaselineKey, tradeAssessment } from './trade-preview.mjs';
 import { normalizeSeriesInjuries, prepareSeriesTeams, normalizeSeriesScore } from './series.mjs';
 
+import { draftBoard, validateDraftOptions } from './draft.mjs';
+
 const MAX_UPLOAD = 64 * 1024 * 1024;
 const MAX_JSON = 256 * 1024 * 1024;
 const phaseNames = ['Preseason', 'Regular season', 'After trade deadline', 'Playoffs',
@@ -17,6 +20,8 @@ const assets = new Map([
   ['/index.html', ['../web/index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['../web/app.js', 'text/javascript; charset=utf-8']],
   ['/trade-builder.js', ['../web/trade-builder.js', 'text/javascript; charset=utf-8']],
+  ['/advisor.js', ['../web/advisor.js', 'text/javascript; charset=utf-8']],
+  ['/draft.js', ['../web/draft.js', 'text/javascript; charset=utf-8']],
   ['/playoff-series.js', ['../web/playoff-series.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['../web/styles.css', 'text/css; charset=utf-8']],
   ['/collect-proposals.js', ['../scripts/collect-proposals.js', 'text/javascript; charset=utf-8']],
@@ -69,9 +74,10 @@ export function importSnapshot(bytes, filename = 'league.json') {
   const phase = Number.isInteger(league.settings.phase) ? league.settings.phase : null;
   const candidateTeamId = bundle?.context?.userTid ?? league.settings.userTid;
   const teamId = league.teams.has(candidateTeamId) ? candidateTeamId : teams[0].tid;
-  return { league, bundle, baselines:new Map(), previews:new Map(), summary: { filename, season: league.settings.season, teamId, teams,
+  return { league, bundle, baselines:new Map(), previews:new Map(), summary: { prospects:draftBoard(league), filename, season: league.settings.season, teamId, teams,
     warnings: league.warnings, hasProposals: !!bundle,
     tradeContext: { phase, phaseLabel: phase === null ? 'Not included in export' : phaseNames[phase] ?? `Phase ${phase}`,
+      hasReleasedPlayers: Array.isArray(raw.releasedPlayers),
       hasDraftPicks: Array.isArray(raw.draftPicks),
       hasTeamStrategies: teams.every(t => ['contending', 'rebuilding'].includes(metadata.get(t.tid)?.strategy)),
       hasDifficulty: Number.isFinite(league.settings.difficulty),
@@ -81,6 +87,8 @@ export function importSnapshot(bytes, filename = 'league.json') {
 }
 
 export function validateJobOptions(league, type, input = {}) {
+  if (type === 'advisor') return validateAdvisorOptions(league,input ?? {});
+  if (type === 'draft') return validateDraftOptions(league,input ?? {});
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw fail('Invalid job options');
   const options = {
     teamId: integer(input.teamId, undefined, 0, Number.MAX_SAFE_INTEGER, 'Team ID'),
@@ -205,7 +213,7 @@ export function createApp({ maxJobMs = 5 * 60 * 1000 } = {}) {
         let body;
         try { body = JSON.parse((await readBody(request, 16384)).toString()); }
         catch (error) { if (error.status) throw error; throw fail('Expected a JSON request'); }
-        if (!body || !['evaluate', 'search', 'proposals','trade','make-work','series'].includes(body.type)) throw fail('Unknown job type');
+        if (!body || !['evaluate', 'search', 'proposals','trade','make-work','series','draft','advisor'].includes(body.type)) throw fail('Unknown job type');
         const session = sessions.get(body.sessionId);
         if (!session) throw fail('Import a league first; this session has expired', 404);
         if (body.type === 'proposals' && !session.bundle) throw fail('Import a collected proposal bundle first');

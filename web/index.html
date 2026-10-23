@@ -28,6 +28,8 @@
         <button class="nav-item active" id="overview-tab" data-tab="overview" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 11h5v6H3zm9-8h5v14h-5zM3 3h5v4H3z"/></svg>Team overview</button>
         <button class="nav-item" id="trade-tab" data-tab="trade"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h13m-4-3 4 3-4 3M17 15H4m4-3-4 3 4 3"/></svg>Trade builder<span class="nav-tag">LIVE</span></button>
         <button class="nav-item" id="series-tab" data-tab="series"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h8v5a4 4 0 0 1-8 0V3ZM6 5H3v2a4 4 0 0 0 4 4m7-6h3v2a4 4 0 0 1-4 4m-3 1v5m-3 0h6"/></svg>Playoff matchup</button>
+      <button class="nav-item" data-tab="draft">Draft prospects</button>
+      <button class="nav-item" data-tab="advisor">Trade advisor</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="local-badge"><span class="status-dot"></span> Local workspace</div>
@@ -141,7 +143,24 @@
             <p class="series-note">Injuries are fixed for the entire series; players do not heal between games. Minor injuries (1–4 games remaining) use BBGM’s default playoff policy and reduce ratings by 2.5% per remaining game. “Out for series” removes the player from the rotation. New injuries are disabled.</p>
             <div class="series-rosters" id="series-rosters"></div>
           </section>
-          <details class="warnings-panel" id="warnings-panel" hidden><summary id="warnings-summary">Model notes</summary><ul id="warnings-list"></ul></details>
+          <section id="draft-view" hidden aria-labelledby="draft-heading">
+<div class="section-heading"><div><span class="section-kicker">BUILD YOUR FUTURE</span><h2 id="draft-heading">Draft prospects</h2></div><span class="pill">True ratings</span></div>
+<article class="panel series-config"><p>Compare up to six undrafted players using five seasons of development and projected team impact. Board ranks use exported player value; they are not predicted pick numbers. These stochastic scenarios retain and age your current roster. Future transactions, retirement, and historical-player determinism are not modeled.</p>
+<div class="series-fields"><label>Draft class<select id="draft-year"></select></label><label>Starting board rank<input id="draft-start" type="number" min="1" value="10"></label><label>Number of prospects<select id="draft-count"><option>5</option><option>6</option><option>3</option><option>1</option></select></label><label>Competitive window<select id="draft-window"><option value="balanced">Balanced · five seasons</option><option value="soon">Win soon · emphasize years 1–2</option><option value="later">Long term · emphasize years 4–5</option></select></label><label>Effective coaching level (assumption)<input id="draft-coaching" type="number" min="1" max="100" value="34"></label></div>
+<div class="series-actions"><button class="button button-secondary" id="draft-range">Select ranked range</button><button class="button button-primary" id="draft-run">Compare selected prospects</button></div><p class="series-note" id="draft-selection-note"></p>
+</article><article class="panel series-config draft-board-panel"><h3>Available prospects</h3><div class="table-scroll"><table><thead><tr><th>Select</th><th>Board rank</th><th>Prospect</th><th>Age</th><th>True OVR</th><th>POT</th></tr></thead><tbody id="draft-board"></tbody></table></div></article>
+<div id="draft-results"></div>
+</section>
+<section id="advisor-view" hidden aria-labelledby="advisor-heading">
+<div class="section-heading"><div><span class="section-kicker">BUILD YOUR NEXT FIVE SEASONS</span><h2 id="advisor-heading">Trade advisor</h2></div><span class="pill">Player-only deals</span></div>
+<article class="panel series-config"><p>Find accepted, legal packages and compare their impact this season and over the next four. A bounded search recommends one trade at a time; it may miss better deals.</p>
+<div class="series-fields"><label>Competitive window<select id="advisor-window"><option value="balanced">Balanced</option><option value="soon">Contend now</option><option value="later">Rebuild · emphasize later seasons</option></select></label><label>Search budget<select id="advisor-budget"><option value="200">200 packages · quick</option><option value="500" selected>500 packages · standard</option><option value="1500">1,500 packages · broader search</option></select></label><label>Maximum added annual commitment ($M)<input id="advisor-salary" type="number" min="0" step="any" placeholder="No limit"></label><label>Effective coaching level (assumption)<input id="advisor-coaching" type="number" min="1" max="100" value="34"></label><label>Current-season health<select id="advisor-health"><option value="current">Current injuries</option><option value="healthy">Assume fully healthy</option></select></label><label>Search seed<input id="advisor-seed" type="number" min="0" max="2147483647" value="12345"></label></div>
+<p class="series-note" id="advisor-context"></p><label class="advisor-assumption"><input id="advisor-no-releases" type="checkbox"> Assume there are no released-player salary obligations if the export omits them</label>
+<p class="series-note">Contract-based projections replace expiring players with a fixed replacement-level benchmark. The separate “if retained” projection assumes everyone re-signs. New contracts, replacement salaries, retirement and historical-player determinism are not predicted. Picks are excluded.</p>
+<details class="advisor-protection"><summary>Protect players from all recommendations</summary><div id="advisor-protected"></div></details>
+<div class="series-actions"><button class="button button-primary" id="advisor-run">Recommend trades</button></div></article>
+<div id="advisor-results"></div></section>
+<details class="warnings-panel" id="warnings-panel" hidden><summary id="warnings-summary">Model notes</summary><ul id="warnings-list"></ul></details>
           <footer class="page-footer"><span>BBGM SOLVER <span class="footer-dot">·</span> CURRENT TEAM ANALYSIS</span><span>Frozen rosters. Reproducible simulations. Better-informed decisions.</span></footer>
         </div>
       </div>

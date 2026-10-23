@@ -1,3 +1,5 @@
+import { createAdvisor } from './advisor.js';
+import { createDraft } from './draft.js';
 import { createTradeBuilder } from './trade-builder.js';
 import { createPlayoffSeries } from './playoff-series.js';
 
@@ -22,13 +24,15 @@ function showError(error) { $('error-banner').textContent = error?.message ?? St
 function clearError() { $('error-banner').hidden = true; }
 function selectedTeam() { return state.session?.teams.find(t => t.tid === Number($('team-select').value)); }
 function teamName(tid) { return state.session?.teams.find(t => t.tid === tid)?.name ?? `Team ${tid}`; }
-function report() { return state.tab === 'overview' ? state.evaluation : state.tab === 'series' ? playoffs.report() : builder.report(); }
+function report() { return state.tab === 'overview' ? state.evaluation : state.tab === 'series' ? playoffs.report() : state.tab === 'draft' ? draft.report() : state.tab === 'advisor' ? advisor.report() : builder.report(); }
 function setBusy() {
   const busy = !!state.job || state.importing;
   for (const id of ['import-button','empty-import-button','team-select','evaluate-button','phase-select','health-select','games-select','seed-input']) {
     $(id).disabled = busy || (!state.session && !['import-button','empty-import-button'].includes(id));
   }
   builder.setDisabled(busy || !state.session || state.tab !== 'trade');
+  advisor.setDisabled(busy || !state.session || state.tab !== 'advisor');
+  draft.setDisabled(busy || !state.session || state.tab !== 'draft');
   playoffs.setDisabled(busy || !state.session || state.tab !== 'series');
   $('download-button').disabled = busy || !report();
   $('job-panel').hidden = !state.job;
@@ -44,12 +48,12 @@ function switchTab(tab) {
     if (item.dataset.tab === tab) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current');
   }
   $('overview-view').hidden = tab !== 'overview'; $('trade-view').hidden = tab !== 'trade';
-  $('series-view').hidden = tab !== 'series'; $('analysis-toolbar').hidden = tab === 'series';
-  $('view-label').textContent = tab === 'overview' ? 'Team overview' : tab === 'series' ? 'Playoff matchup' : 'Trade builder';
+  $('series-view').hidden = tab !== 'series'; $('draft-view').hidden = tab !== 'draft'; $('advisor-view').hidden = tab !== 'advisor'; $('analysis-toolbar').hidden = ['series','draft','advisor'].includes(tab);
+  $('view-label').textContent = tab === 'overview' ? 'Team overview' : tab === 'series' ? 'Playoff matchup' : tab === 'draft' ? 'Draft prospects' : tab === 'advisor' ? 'Trade advisor' : 'Trade builder';
   renderWarnings(); setBusy();
 }
 function clearResults() {
-  state.evaluation = null; builder.reset(); playoffs.reset();
+  state.evaluation = null; builder.reset(); playoffs.reset(); draft.reset(); advisor.reset();
   renderEvaluation(); renderWarnings(); setBusy();
 }
 function renderTeam() {
@@ -133,15 +137,16 @@ async function startJob(type) {
   if (!state.session || state.job || state.importing) return;
   if (!$('seed-input').reportValidity()) return;
   clearError(); state.job = {id:null,type,version:state.version};
-  state.evaluation = null; renderEvaluation(); switchTab('overview');
-  $('job-title').textContent = 'Analyzing your team';
+  if(type === 'advisor') advisor.clear(); else if(type === 'draft') draft.clear(); else { state.evaluation = null; renderEvaluation(); }
+  switchTab(['draft','advisor'].includes(type) ? type : 'overview');
+  $('job-title').textContent = type === 'draft' ? 'Projecting draft prospects' : type === 'advisor' ? 'Finding trades for your future' : 'Analyzing your team';
   updateProgress(); setBusy();
   const job = state.job;
   try {
     await builder.cancel();
     await playoffs.cancel();
     if (state.job !== job) return;
-    const response = await api('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:state.session.sessionId,type,options:jobOptions(type)})});
+    const response = await api('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:state.session.sessionId,type,options:type === 'draft' ? draft.options() : type === 'advisor' ? advisor.options() : jobOptions()})});
     job.id = response.jobId;
     if (state.job !== job) { await api(`/api/jobs/${job.id}`,{method:'DELETE'}); return; }
     pollJob(job);
@@ -157,7 +162,7 @@ async function pollJob(job) {
     state.job = null;
     if (response.status === 'failed') throw new Error(response.error || 'This run could not be completed');
     if (response.status === 'complete' && job.version === state.version) {
-      state.evaluation = response.result; renderEvaluation();
+      if(job.type === 'advisor') advisor.show(response.result); else if(job.type === 'draft') draft.show(response.result); else { state.evaluation = response.result; renderEvaluation(); }
     }
     renderWarnings(); setBusy();
   } catch (error) {
@@ -197,6 +202,10 @@ const playoffs = createPlayoffSeries({
   onChange:() => { renderWarnings(); setBusy(); },
   beforeRun:() => builder.cancel(),
 });
+
+const draft = createDraft({$,escape,number,getSession:()=>state.session,selectedTeam,onChange:()=>{renderWarnings();setBusy();},onRun:()=>startJob('draft')});
+
+const advisor = createAdvisor({$,escape,number,money,getSession:()=>state.session,selectedTeam,onChange:()=>{renderWarnings();setBusy();},onRun:()=>startJob('advisor'),onOpen:scenario=>{switchTab('trade');builder.loadScenario(scenario);window.scrollTo({top:0,behavior:'smooth'});}});
 
 $('import-button').addEventListener('click',() => $('league-file').click());
 $('empty-import-button').addEventListener('click',() => $('league-file').click());

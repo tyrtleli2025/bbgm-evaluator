@@ -31,3 +31,5 @@ mkdirSync(util, { recursive: true });
 writeFileSync(resolve(util, 'index.js'), `export { g, helpers } from ${JSON.stringify(runtime)};\n`);
 writeFileSync(resolve(util, 'helpers.js'), `export { helpers as default } from ${JSON.stringify(runtime)};\n`);
 console.error(`Built local engine ${manifest.revision} (verified source hashes).`);
+
+writeFileSync(resolve(root, ".engine/common/helpers.js"), `export { helpers } from ${JSON.stringify(runtime)};\n`);

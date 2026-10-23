@@ -23,7 +23,11 @@
     "src/worker/core/player/fuzzRating.ts": "afcfdd8353ed33554131819c6f7587bfb2af9a00c1c14ebed23d57fc078b1c9d",
     "src/worker/core/player/stats.basketball.ts": "87775e7e47c43c34ff5f7ff16acba4e052e6aaf46d5d76f83b16f07a24c32cc9",
     "src/worker/core/team/stats.basketball.ts": "a5ececf8dc4586315ee2cb24e2acc29f9cdbf7feab6f79ffa5f73824a1aa748d",
-    "src/worker/core/game/loadTeams.ts": "76688563cd598dedef0b784fa5df8ea5018b652d65661109f26f37b511010205"
+    "src/worker/core/game/loadTeams.ts": "76688563cd598dedef0b784fa5df8ea5018b652d65661109f26f37b511010205",
+    "src/worker/core/player/developSeason.basketball.ts": "cf1761b07c24209a896a3fa30a02b8ae4a3068a1185c1b72c5f73c75f8fdb55b",
+    "src/worker/core/player/limitRating.ts": "f0b57d7409ea74f9f06b5200826d6d981e84d8b85bc76666278e5e34f84e891b",
+    "src/worker/core/player/ovr.basketball.ts": "6d2faa34bbebc7844b252017c80b468784731348884f7e057fa784bd062c854f",
+    "src/common/budgetLevels.ts": "7dcd2a65e1c68b6ad3d5bd5955c9438bed11047a03cf3f41bd7d5922d21612ce"
   },
   "auditFiles": {
     "reference/tradeProposals.ts": {

@@ -1,0 +1,19 @@
+export function createDraft({$,escape,number,getSession,selectedTeam,onChange,onRun}) {
+ let result=null;const selected=new Set();
+ const board=()=>getSession()?.prospects?.filter(p=>p.year===Number($('draft-year').value))??[];
+ function render(){
+  $('draft-board').innerHTML=board().map(p=>`<tr><td><input type="checkbox" data-prospect="${p.pid}" aria-label="Compare ${escape(p.name)}" ${selected.has(p.pid)?'checked':''}></td><td>${p.rank}</td><td>${escape(p.name)} · ${escape(p.position)}</td><td>${p.age}</td><td>${p.ovr}</td><td>${p.pot??'—'}</td></tr>`).join('');
+  $('draft-selection-note').textContent=board().length?`${selected.size} selected. Choose 1–6 players. To compare ranks 10–15, start at 10 and choose 6. All projections assume the current roster is retained, healthy, and automatically rotated. Future development remains random.`:'No eligible prospects in this export. Import a full league export containing undrafted players in the draft year.';
+ }
+ function clear(){result=null;$('draft-results').innerHTML='';onChange();}
+ function range(){selected.clear();const start=Number($('draft-start').value);board().filter(p=>p.rank>=start).slice(0,Number($('draft-count').value)).forEach(p=>selected.add(p.pid));render();clear();}
+ function reset(){selected.clear();const years=[...new Set(getSession()?.prospects?.map(p=>p.year)??[])];$('draft-year').innerHTML=years.map(y=>`<option>${y}</option>`).join('');if(years.includes(getSession()?.season))$('draft-year').value=String(getSession().season);range();}
+ function show(r){result=r;const n=v=>number(v,1),signed=v=>`${v>0?'+':''}${n(v)}`;
+  $('draft-results').innerHTML=`<article class="panel series-config"><h3>Highest estimated team impact: ${escape(r.results[0].name)}</h3><p>Ranked by weighted improvement in net points per 100 possessions. Compare uncertainty intervals before treating a small gap as meaningful. ${r.paths} development paths per prospect; ${r.fitPaths} shared team scenarios. ${n(r.elapsedSeconds)}s.</p></article>`+r.results.map((p,i)=>`<article class="panel series-config"><h3>${i+1}. ${escape(p.name)} <span class="pill">Board #${p.rank}</span></h3><p><strong>${signed(p.score)} projected team impact</strong> · 95% sampling interval: ${signed(p.scoreConfidence95[0])} to ${signed(p.scoreConfidence95[1])}</p><div class="table-scroll"><table><thead><tr><th>Season after draft</th><th>Mean OVR</th><th>80% development range</th><th>Chance OVR ≥ 50</th><th>Minutes</th><th>Team impact</th><th>Δ Off synergy</th><th>Δ Def synergy</th><th>Δ Reb synergy</th></tr></thead><tbody>${p.years.map(y=>`<tr><td>${y.year}</td><td>${n(y.ovr)}</td><td>${y.ovrRange80.join('–')}</td><td>${n(100*y.rotationProbability)}%</td><td>${n(y.minutes)}</td><td>${signed(y.impact)}</td><td>${signed(y.synergy.off)}</td><td>${signed(y.synergy.def)}</td><td>${signed(y.synergy.reb)}</td></tr>`).join('')}</tbody></table></div></article>`).join('');onChange();
+ }
+ $('draft-range').addEventListener('click',range);$('draft-year').addEventListener('change',range);
+ $('draft-board').addEventListener('change',e=>{if(e.target.dataset.prospect===undefined)return;const pid=Number(e.target.dataset.prospect);e.target.checked?selected.add(pid):selected.delete(pid);render();clear();});
+ for(const id of ['draft-coaching','draft-window'])$(id).addEventListener('change',clear);
+ $('draft-run').addEventListener('click',()=>{if($('draft-coaching').reportValidity())onRun();});
+ return {reset,clear,show,report:()=>result,options:()=>({teamId:selectedTeam().tid,pids:[...selected],window:$('draft-window').value,coaching:Number($('draft-coaching').value),seed:12345}),setDisabled:disabled=>{for(const el of document.querySelectorAll('#draft-view input,#draft-view select,#draft-view button'))el.disabled=disabled;$('draft-run').disabled=disabled||selected.size<1||selected.size>6;}};
+}
