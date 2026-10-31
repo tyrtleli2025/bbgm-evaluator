@@ -6,6 +6,42 @@ means an average advantage of about eight points per 100 possessions against
 that reference set. Zero means parity; higher is stronger. It is not a 0–100
 player rating or a championship probability.
 
+## Live browser extension
+
+The [Courtside extension](extension/README.md) adds a live panel to BBGM’s current
+roster page, with starting-lineup search, synergies, and a numerical skill
+breakdown in a compact dark side panel. In Chrome, open `chrome://extensions`, enable Developer mode, click
+**Load unpacked**, and select this project’s `extension` folder. Reload BBGM and
+open Roster. This panel runs entirely in the browser and needs no local server.
+On Trade, the panel compares the best estimated lineups before and after the
+selected package. The lineup estimate balances talent and synergy; it is a
+screening heuristic, not predicted wins. Expand the panels for lineups and assets.
+Player profiles also show the eight individual skill contributions, with healthy
+and current values for injured players.
+
+## Eight-season comparisons
+
+The optional [eight-season comparison runner](campaign/README.md) compares a
+no-opening-move baseline with specified trade sequences using the complete BBGM
+league engine. It reports expected championships over eight seasons, yearly
+title chances, and paired differences. After the opening moves, BBGM's AI manages
+every team, including yours. `npm run campaign:plan` adds bounded automatic search
+over multi-asset packages and two-trade sequences, followed by campaign comparisons.
+
+```sh
+npm run campaign:setup
+npm run campaign -- --league "League json files/BBGM_League_14_2000_preseason.json" --team-id 21 --trials 1
+```
+
+Requires a full league export. Add `--plans scenarios/my-plans.json` for candidate
+sequences; see the linked guide for the format. One trial is a smoke test, not a
+reliable trade ranking. The optional runtime is separate from the website and
+extension.
+
+`npm run campaign:validate` compares the Node runner with the pinned engine in
+an isolated headless browser, checking import and season/offseason state. See the
+runner guide to validate your own export and inspect any differences.
+
 ## Website
 
 Requires Node 22.13 or newer. Run this from the project directory:
@@ -472,13 +508,53 @@ is included in [vendor/zengm/LICENSE.md](vendor/zengm/LICENSE.md). This project
 is a local evaluator. Keep that license with any shared upstream source; the
 upstream license restricts public hosting and distribution of runnable products.
 
+### Recommended rotation
+
+On **Team overview**, click **Optimize rotation** to get a numbered roster order,
+starter/bench labels, BBGM playing-time controls, and expected minutes. Copy the
+order and controls into BBGM's roster screen. Nothing changes in the imported
+league, and the overview's main metrics still describe the exported rotation.
+
+The search tests up to 96 unique orders/settings, keeping promising candidates
+and mutating starters, bench order, and playing-time controls. Full game
+simulations account for synergy, fatigue, substitutions, fouls, and offense and
+defense. Screening uses four opponents spread across exported roster strength;
+three finalists get additional simulations. One finalist is locked before a
+fresh, paired home/away comparison against every other team. Validation uses the
+selected games-per-opponent budget with a minimum of eight. The report includes
+the paired net-rating change, sampling interval, and synergy comparison.
+
+If the fresh estimate is nonpositive, the recommendation keeps the exported
+rotation. Positive estimates whose intervals include zero are marked tentative.
+This is a bounded search, not proof of a global optimum. The phase and health
+controls apply throughout, and rerunning with unchanged settings is reproducible.
+
+Settings match the [pinned BBGM roster selector](https://github.com/zengm-games/zengm/blob/e2e6a3c7cd87d456b64ed94b67539dee7da71aa7/src/ui/views/Roster/PlayingTime.tsx):
+`0` = 0, `−` = 0.75, Normal (blank) = 1, `+` = 1.25, `++` = 1.5. These multiply
+substitution priority; they do not assign exact minutes. A player set to `0` can
+still play when needed, and the top roster slots influence starters. The shown
+minutes and starter labels come from validation games. Opponents keep their
+exported rotations, injuries are fixed, and new injuries are disabled.
+
 ### Draft prospects
 
 The **Draft prospects** tab uses true exported ratings, with no scouting fuzz.
-Import a full league snapshot in the draft year. Select 1–6 undrafted players,
-individually or by board range (start 10, count 6 selects ranks 10–15). Board order
-uses exported player value, falling back to OVR; it does not predict who will
-remain available at your pick. Already drafted players are excluded.
+Import a full league snapshot in the draft year and click **Evaluate available
+class**. Every eligible undrafted player in that class is evaluated together;
+there is no six-player limit or pick-range selection. Search by name or position
+to find whoever remains on your in-game board. The default order is alphabetical,
+with sorting by team impact, development upside, current OVR, or projected year-5
+OVR. Click any column header to sort, then click it again to reverse the order;
+the arrow marks the active direction. Filtering and sorting reuse the completed evaluation. Click any player name
+to open their detailed projection. Availability is frozen at import; reimport a
+new snapshot to exclude players who have since been drafted. This does not
+predict draft order or try to reproduce the game's scouted board ordering.
+Check a prospect's **Drafted** box to cross them off as picks happen, or enable
+**Hide drafted players** to show only remaining names. Uncheck to undo, or use
+**Clear drafted marks** to reset the selected class. Marks persist through
+searches, sorting, team changes, and re-evaluation within the current import;
+importing a file again resets them. These manual reminders do not change the
+league, evaluation scope, or projected results.
 
 The pinned ZenGM basketball development, OVR, and coaching formulas generate 200
 five-season paths per prospect. POT is descriptive, never a target or cap. The
@@ -490,9 +566,16 @@ simulating home/away games with and without each prospect. Scores are weighted
 mean changes in net points per 100 possessions; the win-soon weights are
 5/4/2/1/1, balanced 1/1/1/1/1, and long-term 1/1/2/4/5. The view also reports
 projected minutes, synergy changes, 10th–90th percentile OVR ranges, and the
-chance of reaching OVR 50 in each year. OVR 50 is a transparent ability threshold,
-not a guaranteed rotation spot. Wide impact intervals mean close rankings may
-be inconclusive. Reports can be exported with the existing export button.
+chance of reaching OVR 50, 60, and 70 in each year. Development upside separately
+reports the fraction of paths reaching 60/70 at least once during the five
+post-draft seasons, plus the mean and 80% range of each path's maximum OVR in
+that period. These are rating thresholds, not guaranteed roles, awards, or
+career ceilings. A high-upside player may have little incremental impact on a
+strong existing rotation. Team-fit signals are positive/negative only when the
+95% sampling interval is entirely above/below zero; otherwise they are unclear.
+The detail view separates early (years 1–2) and later (years 4–5) team impact.
+Wide impact intervals mean close rankings may be inconclusive. Reports export
+the entire evaluated class with the existing export button.
 
 This first version retains all current roster members, assumes full health,
 uses automatic OVR-ordered rotations with OVR as a rotation-value proxy, and

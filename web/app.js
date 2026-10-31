@@ -11,7 +11,7 @@ const interval = values => values?.length === 2 ? `${signed(values[0])} to ${sig
 const money = amount => Number.isFinite(amount) ? `$${number(amount / 1000, 2)}M` : '—';
 const synergyLabels = {off:'Offensive synergy', def:'Defensive synergy', reb:'Rebounding synergy'};
 const skillLabels = {'3':'Shooting', A:'Athleticism', B:'Handling', Di:'Interior D', Dp:'Perimeter D', Po:'Post play', Ps:'Passing', R:'Rebounding'};
-const state = { session:null, tab:'overview', evaluation:null, job:null, importing:false, version:0 };
+const state = { session:null, tab:'overview', evaluation:null, rotation:null, job:null, importing:false, version:0 };
 let pollTimer;
 
 async function api(url, options = {}) {
@@ -24,10 +24,13 @@ function showError(error) { $('error-banner').textContent = error?.message ?? St
 function clearError() { $('error-banner').hidden = true; }
 function selectedTeam() { return state.session?.teams.find(t => t.tid === Number($('team-select').value)); }
 function teamName(tid) { return state.session?.teams.find(t => t.tid === tid)?.name ?? `Team ${tid}`; }
-function report() { return state.tab === 'overview' ? state.evaluation : state.tab === 'series' ? playoffs.report() : state.tab === 'draft' ? draft.report() : state.tab === 'advisor' ? advisor.report() : builder.report(); }
+function report() {
+  if(state.tab==='overview')return state.evaluation&&state.rotation?{...state.evaluation,rotation:state.rotation,warnings:[...new Set([...state.evaluation.warnings,...state.rotation.warnings])]}:state.evaluation??state.rotation;
+  return state.tab === 'series' ? playoffs.report() : state.tab === 'draft' ? draft.report() : state.tab === 'advisor' ? advisor.report() : builder.report();
+}
 function setBusy() {
   const busy = !!state.job || state.importing;
-  for (const id of ['import-button','empty-import-button','team-select','evaluate-button','phase-select','health-select','games-select','seed-input']) {
+  for (const id of ['import-button','empty-import-button','team-select','evaluate-button','rotation-run','phase-select','health-select','games-select','seed-input']) {
     $(id).disabled = busy || (!state.session && !['import-button','empty-import-button'].includes(id));
   }
   builder.setDisabled(busy || !state.session || state.tab !== 'trade');
@@ -53,7 +56,7 @@ function switchTab(tab) {
   renderWarnings(); setBusy();
 }
 function clearResults() {
-  state.evaluation = null; builder.reset(); playoffs.reset(); draft.reset(); advisor.reset();
+  state.evaluation = null; state.rotation = null; builder.reset(); playoffs.reset(); draft.reset(); advisor.reset();
   renderEvaluation(); renderWarnings(); setBusy();
 }
 function renderTeam() {
@@ -99,7 +102,19 @@ function renderEvaluation() {
     $('insight-title').textContent = 'Find the missing piece.';
     $('insight-copy').textContent = 'Evaluate your roster to see how its on-court combinations compare with the rest of the league.';
   }
-  renderRoster();
+  renderRoster();renderRotation();
+}
+function renderRotation() {
+  const r=state.rotation;
+  if(!r){$('rotation-results').innerHTML='';return;}
+  const title=r.status==='keep-current'?'Keep your current rotation':r.status==='improved'?'Recommended rotation':'Promising rotation · improvement uncertain';
+  const explanation=r.status==='keep-current'?'The search did not find an improvement on fresh validation games. The table shows your exported rotation.':r.status==='tentative'?'The tested gain is positive, but its sampling interval includes zero. Treat this as a candidate to try.':'The tested improvement has a sampling interval above zero.';
+  $('rotation-results').innerHTML=`<h3>${title}</h3><p>${explanation} Tested change: <strong>${signed(r.delta.net.estimate)} net points / 100</strong> (95% interval ${interval(r.delta.net.confidence95)}).</p>
+    <p>Exported strength: <strong>${signed(r.before.strength)}</strong> → recommended strength: <strong>${signed(r.recommended.strength)}</strong>. ${r.searchedCandidates} rotations searched; ${r.recommended.games} fresh validation games per rotation. ${number(r.elapsedSeconds)}s. Fresh simulation seeds mean this baseline can differ from the main overview estimate.</p>
+    <p>In BBGM’s roster screen, drag players into the numbered order below and set their playing-time controls to match. “Normal” is the blank/default setting. Minutes are estimates; the engine chooses substitutions.</p>
+    <div class="table-scroll"><table><thead><tr><th>Order</th><th>Player</th><th>Role</th><th>Pos</th><th>OVR</th><th>Playing time</th><th>Expected MIN</th><th>Current MIN</th></tr></thead><tbody>${r.rotation.map(p=>`<tr><td>${p.order}</td><td>${escape(p.name)}${p.playingThrough?' <small>Playing through injury</small>':''}</td><td>${!p.available?'Out':p.startRate>.5?'Starter':'Bench'}</td><td>${escape(p.position)}</td><td>${number(p.ovr,0)}</td><td><span class="pill">${escape(p.playingTime)}</span></td><td>${number(p.minutes)}</td><td>${number(p.beforeMinutes)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="series-note">${r.phase==='playoffs'?'Playoff':'Regular-season'} rotation · ${r.health==='healthy'?'assuming everyone is healthy':'current injuries'}. Starter labels reflect simulated starts. Out players remain listed so you can copy the full roster order.</p>
+    <div class="table-scroll"><table><thead><tr><th>Synergy</th><th>Exported rotation</th><th>Recommended rotation</th><th>Change</th></tr></thead><tbody>${Object.entries(synergyLabels).map(([key,label])=>`<tr><td>${label}</td><td>${number(r.before.synergy.scale100[key])}</td><td>${number(r.recommended.synergy.scale100[key])}</td><td>${signed(r.recommended.synergy.scale100[key]-r.before.synergy.scale100[key])}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function renderWarnings() {
   const messages = report()?.warnings ?? state.session?.warnings ?? [];
@@ -137,9 +152,9 @@ async function startJob(type) {
   if (!state.session || state.job || state.importing) return;
   if (!$('seed-input').reportValidity()) return;
   clearError(); state.job = {id:null,type,version:state.version};
-  if(type === 'advisor') advisor.clear(); else if(type === 'draft') draft.clear(); else { state.evaluation = null; renderEvaluation(); }
+  if(type === 'advisor') advisor.clear(); else if(type === 'draft') draft.clear(); else if(type==='rotation') {state.rotation=null;renderRotation();} else { state.evaluation = null; renderEvaluation(); }
   switchTab(['draft','advisor'].includes(type) ? type : 'overview');
-  $('job-title').textContent = type === 'draft' ? 'Projecting draft prospects' : type === 'advisor' ? 'Finding trades for your future' : 'Analyzing your team';
+  $('job-title').textContent = type === 'rotation' ? 'Optimizing your rotation' : type === 'draft' ? 'Projecting draft prospects' : type === 'advisor' ? 'Finding trades for your future' : 'Analyzing your team';
   updateProgress(); setBusy();
   const job = state.job;
   try {
@@ -162,7 +177,7 @@ async function pollJob(job) {
     state.job = null;
     if (response.status === 'failed') throw new Error(response.error || 'This run could not be completed');
     if (response.status === 'complete' && job.version === state.version) {
-      if(job.type === 'advisor') advisor.show(response.result); else if(job.type === 'draft') draft.show(response.result); else { state.evaluation = response.result; renderEvaluation(); }
+      if(job.type==='rotation') {state.rotation=response.result;renderRotation();} else if(job.type === 'advisor') advisor.show(response.result); else if(job.type === 'draft') draft.show(response.result); else { state.evaluation = response.result; renderEvaluation(); }
     }
     renderWarnings(); setBusy();
   } catch (error) {
@@ -222,12 +237,13 @@ $('team-select').addEventListener('change',() => { state.version++; clearError()
 for (const item of document.querySelectorAll('[data-tab]')) item.addEventListener('click',() => switchTab(item.dataset.tab));
 $('open-trade-button').addEventListener('click',() => { switchTab('trade'); window.scrollTo({top:0,behavior:'smooth'}); });
 $('evaluate-button').addEventListener('click',() => startJob('evaluate'));
+$('rotation-run').addEventListener('click',() => startJob('rotation'));
 $('cancel-button').addEventListener('click',cancelJob);
 $('download-button').addEventListener('click',downloadReport);
 for (const id of ['phase-select','health-select','seed-input']) $(id).addEventListener('change',() => {
-  state.version++; state.evaluation = null; renderEvaluation(); builder.refresh(); renderWarnings(); setBusy();
+  state.version++; state.evaluation = null; state.rotation=null; renderEvaluation(); builder.refresh(); renderWarnings(); setBusy();
 });
 $('games-select').addEventListener('change',() => {
-  state.version++; state.evaluation = null; renderEvaluation(); builder.renderBudget(); renderWarnings(); setBusy();
+  state.version++; state.evaluation = null; state.rotation=null; renderEvaluation(); builder.renderBudget(); renderWarnings(); setBusy();
 });
 renderEvaluation(); builder.render(); setBusy();

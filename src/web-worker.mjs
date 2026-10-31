@@ -1,6 +1,7 @@
 import { recommendTrades } from './advisor.mjs';
 import { parentPort, workerData } from 'node:worker_threads';
 import { evaluate } from './evaluator.mjs';
+import { optimizeRotation } from './rotation.mjs';
 import { rankProposals } from './proposals.mjs';
 import { searchTrades } from './search.mjs';
 import { previewTrade } from './trade-preview.mjs';
@@ -19,6 +20,8 @@ try {
     result = evaluate(league, { ...options, onProgress: p => onProgress({
       ...p, stage: 'Simulating current team', completed: p.simulatedGames, total,
     }) });
+  } else if (type === 'rotation') {
+    result = optimizeRotation(league,{...options,onProgress});
   } else if (type === 'advisor') {
     result = await recommendTrades(league,{...options,onProgress});
   } else if (type === 'draft') {

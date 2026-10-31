@@ -213,7 +213,7 @@ export function createApp({ maxJobMs = 5 * 60 * 1000 } = {}) {
         let body;
         try { body = JSON.parse((await readBody(request, 16384)).toString()); }
         catch (error) { if (error.status) throw error; throw fail('Expected a JSON request'); }
-        if (!body || !['evaluate', 'search', 'proposals','trade','make-work','series','draft','advisor'].includes(body.type)) throw fail('Unknown job type');
+        if (!body || !['evaluate', 'rotation', 'search', 'proposals','trade','make-work','series','draft','advisor'].includes(body.type)) throw fail('Unknown job type');
         const session = sessions.get(body.sessionId);
         if (!session) throw fail('Import a league first; this session has expired', 404);
         if (body.type === 'proposals' && !session.bundle) throw fail('Import a collected proposal bundle first');

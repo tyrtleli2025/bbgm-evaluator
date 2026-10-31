@@ -1,4 +1,6 @@
 .DS_Store
 .engine/
+.campaign-engine/
+.campaign-build/
 results/
 node_modules/

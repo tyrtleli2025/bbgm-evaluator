@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Courtside — Live BBGM Lineup",
+  "version": "0.4.0",
+  "description": "Live player skills, roster synergies, lineup search, and immediate trade impact in BBGM.",
+  "minimum_chrome_version": "106",
+  "permissions": ["scripting"],
+  "host_permissions": ["https://play.basketball-gm.com/*"],
+  "background": {"service_worker": "background.mjs", "type": "module"},
+  "content_scripts": [{"matches": ["https://play.basketball-gm.com/*"], "js": ["panel.js"], "run_at": "document_idle"}]
+}

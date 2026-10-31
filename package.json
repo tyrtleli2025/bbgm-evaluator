@@ -9,6 +9,17 @@
     "start": "node src/server.mjs",
     "build": "node scripts/build-engine.mjs",
     "evaluate": "node src/cli.mjs",
+    "campaign:setup": "node scripts/setup-campaign.mjs",
+    "campaign:build": "node scripts/build-campaign.mjs",
+    "campaign": "node campaign/cli.mjs",
+    "campaign:validate": "node campaign/validate.mjs",
+    "campaign:plan": "node campaign/plan-cli.mjs",
+    "campaign:review": "node campaign/review-cli.mjs",
+    "campaign:learn": "node campaign/learn-cli.mjs",
+    "campaign:benchmark": "node campaign/benchmark-cli.mjs",
+    "campaign:batch": "node campaign/batch-cli.mjs",
+    "campaign:trade-pilot": "node campaign/trade-pilot-cli.mjs",
+    "campaign:test": "node --test campaign/test/*.test.mjs",
     "pretest": "node scripts/build-engine.mjs",
     "test": "node --test test/*.test.mjs"
   }
